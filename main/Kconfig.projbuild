@@ -1,0 +1,11 @@
+menu "WIFI CONNECT"
+
+config WIFI_SSID
+    string "SSID"
+    default "Blocker I Hardly Know Her"
+
+config WIFI_PASSWORD
+    string "PASSWORD"
+    default "hidden"
+
+endmenu

@@ -1,0 +1,7 @@
+{
+    "idf.currentSetup": "C:\\esp\\v6.0.2\\esp-idf",
+    "editor.inlineSuggest.suppressSuggestions": true,
+    "editor.inlineSuggest.enabled": false,
+    "idf.flashType": "UART",
+    "idf.portWin": "COM6"
+}
