@@ -647,15 +647,6 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
-# WIFI CONNECT
-#
-# default:
-CONFIG_WIFI_SSID="Blocker I Hardly Know Her"
-# default:
-CONFIG_WIFI_PASSWORD="hidden"
-# end of WIFI CONNECT
-
-#
 # Compiler options
 #
 CONFIG_COMPILER_OPTIMIZATION_DEBUG=y
