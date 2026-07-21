@@ -1,25 +1,32 @@
 /* Example web server for controlling peripherals
 
 */
-#include <stdio.h>
-#include <string.h>
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
+extern "C" {
+    #include <stdio.h>
+    #include <string.h>
 
-#include "esp_wifi.h"
-#include "esp_event.h"
-#include "esp_system.h"
-#include "esp_log.h"
-#include "nvs_flash.h"
-#include "esp_http_server.h"
+    #include "freertos/FreeRTOS.h"
+    #include "freertos/task.h"
+    #include "freertos/event_groups.h"
 
-#include "driver/gpio.h"
+    #include "esp_wifi.h"
+    #include "esp_event.h"
+    #include "esp_system.h"
+    #include "esp_log.h"
+    #include "nvs_flash.h"
+    #include "esp_http_server.h"
+
+    #include "driver/gpio.h"
+}
+
+#include <cstring>
+#include <string_view>
+#include <algorithm>
 
 
 /* ---- LED STUFF ----*/
-#define LED_PIN 26
+static const gpio_num_t LED_PIN = GPIO_NUM_26;
 static int led_state = 0;
 
 /*
@@ -173,27 +180,28 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
 
 void wifi_init_sta()
 {
-  esp_netif_init();
-  esp_event_loop_create_default();
-  esp_netif_create_default_wifi_sta();
+    esp_netif_init();
+    esp_event_loop_create_default();
+    esp_netif_create_default_wifi_sta();
 
-  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  esp_wifi_init(&cfg);
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    esp_wifi_init(&cfg);
 
-  esp_event_handler_instance_t instance_any_id;
-  esp_event_handler_instance_t instance_got_ip;
-  esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id);
-  esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL, &instance_got_ip);
+    esp_event_handler_instance_t instance_any_id;
+    esp_event_handler_instance_t instance_got_ip;
+    esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id);
+    esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL, &instance_got_ip);
 
-  wifi_config_t wifi_config = {
-    .sta = {
-        .ssid = CONFIG_WIFI_SSID,
-        .password = CONFIG_WIFI_PASSWORD
-    },
-  };
-  esp_wifi_set_mode(WIFI_MODE_STA);
-  esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
-  esp_wifi_start();
+    wifi_config_t wifi_config = {};
+    std::string_view ssid_view(CONFIG_WIFI_SSID);
+    std::copy_n(ssid_view.begin(), std::min(ssid_view.size(), sizeof(wifi_config.sta.ssid)), wifi_config.sta.ssid);
+    std::string_view pass_view(CONFIG_WIFI_PASSWORD);
+    std::copy_n(pass_view.begin(), std::min(pass_view.size(), sizeof(wifi_config.sta.password)), wifi_config.sta.password);
+
+
+    esp_wifi_set_mode(WIFI_MODE_STA);
+    esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
+    esp_wifi_start();
 }
 
 void led_init(void)
@@ -203,11 +211,14 @@ void led_init(void)
     gpio_set_level(LED_PIN, 0);  // Initialize to OFF
 }
 
-void app_main()
+extern "C"
 {
-  esp_log_level_set(THREAD_TAG, ESP_LOG_DEBUG);
-  ESP_ERROR_CHECK(nvs_flash_init());
+    void app_main()
+    {
+    esp_log_level_set(THREAD_TAG, ESP_LOG_DEBUG);
+    ESP_ERROR_CHECK(nvs_flash_init());
 
-  wifi_init_sta();
-  led_init();
+    wifi_init_sta();
+    led_init();
+    }
 }
