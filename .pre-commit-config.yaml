@@ -19,4 +19,3 @@ repos:
         entry: 'cmd.exe /c .\\tests\\run_unit_tests.bat'
         language: system
         pass_filenames: false
-        verbose: true
