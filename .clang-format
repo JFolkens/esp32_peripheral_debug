@@ -2,3 +2,13 @@ BasedOnStyle: Google
 BreakBeforeBraces: Linux
 IndentWidth: 4
 PointerAlignment: Right
+
+# clang-format has no option for being "indifferent" to single line statements.
+# This prevents the formatter from forcing short statements onto one line.
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortLambdasOnASingleLine: None
