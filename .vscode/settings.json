@@ -3,5 +3,6 @@
     "editor.inlineSuggest.suppressSuggestions": true,
     "editor.inlineSuggest.enabled": false,
     "idf.flashType": "UART",
-    "idf.portWin": "COM6"
+    "idf.portWin": "COM6",
+    "C_Cpp.formatting": "clangFormat"
 }

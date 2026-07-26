@@ -3,27 +3,24 @@
 */
 
 extern "C" {
-    #include <stdio.h>
-    #include <string.h>
+#include <stdio.h>
+#include <string.h>
 
-    #include "freertos/FreeRTOS.h"
-    #include "freertos/task.h"
-    #include "freertos/event_groups.h"
-
-    #include "esp_wifi.h"
-    #include "esp_event.h"
-    #include "esp_system.h"
-    #include "esp_log.h"
-    #include "nvs_flash.h"
-    #include "esp_http_server.h"
-
-    #include "driver/gpio.h"
+#include "driver/gpio.h"
+#include "esp_event.h"
+#include "esp_http_server.h"
+#include "esp_log.h"
+#include "esp_system.h"
+#include "esp_wifi.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
+#include "freertos/task.h"
+#include "nvs_flash.h"
 }
 
+#include <algorithm>
 #include <cstring>
 #include <string_view>
-#include <algorithm>
-
 
 /* ---- LED STUFF ----*/
 static const gpio_num_t LED_PIN = GPIO_NUM_26;
@@ -74,20 +71,16 @@ static const char *html_body_end = R"raw(
 </html>
 )raw";
 
+void update_led() { gpio_set_level(LED_PIN, led_state); }
 
-void update_led() {
-    gpio_set_level(LED_PIN, led_state);
-}
-
-void display_current_web_page(httpd_req_t *req) {
+void display_current_web_page(httpd_req_t *req)
+{
     httpd_resp_send_chunk(req, html_page_header, HTTPD_RESP_USE_STRLEN);
     httpd_resp_send_chunk(req, html_body_start, HTTPD_RESP_USE_STRLEN);
 
-    if (led_state == 0)
-    {
+    if (led_state == 0) {
         httpd_resp_send_chunk(req, html_button_off, HTTPD_RESP_USE_STRLEN);
-    } else
-    {
+    } else {
         httpd_resp_send_chunk(req, html_button_on, HTTPD_RESP_USE_STRLEN);
     }
     httpd_resp_send_chunk(req, html_body_end, HTTPD_RESP_USE_STRLEN);
@@ -96,14 +89,16 @@ void display_current_web_page(httpd_req_t *req) {
 }
 
 /* HTTP GET Handler */
-static esp_err_t root_get_handler(httpd_req_t *req) {
+static esp_err_t root_get_handler(httpd_req_t *req)
+{
     update_led();
     display_current_web_page(req);
 
     return ESP_OK;
 }
 
-static esp_err_t led_on_handler(httpd_req_t *req) {
+static esp_err_t led_on_handler(httpd_req_t *req)
+{
     led_state = 1;
 
     update_led();
@@ -112,7 +107,8 @@ static esp_err_t led_on_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
-static esp_err_t led_off_handler(httpd_req_t *req) {
+static esp_err_t led_off_handler(httpd_req_t *req)
+{
     led_state = 0;
 
     update_led();
@@ -122,26 +118,20 @@ static esp_err_t led_off_handler(httpd_req_t *req) {
 }
 
 /* URI Structure mapping the handler to the root path "/" */
-static const httpd_uri_t uri_root = {
-    .uri = "/",
-    .method = HTTP_GET,
-    .handler = root_get_handler,
-    .user_ctx = NULL
-};
+static const httpd_uri_t uri_root = {.uri = "/",
+                                     .method = HTTP_GET,
+                                     .handler = root_get_handler,
+                                     .user_ctx = NULL};
 
-static const httpd_uri_t uri_led_on = {
-    .uri = "/led/on",
-    .method = HTTP_GET,
-    .handler = led_on_handler,
-    .user_ctx = NULL
-};
+static const httpd_uri_t uri_led_on = {.uri = "/led/on",
+                                       .method = HTTP_GET,
+                                       .handler = led_on_handler,
+                                       .user_ctx = NULL};
 
-static const httpd_uri_t uri_led_off = {
-    .uri       = "/led/off",
-    .method    = HTTP_GET,
-    .handler   = led_off_handler,
-    .user_ctx  = NULL
-};
+static const httpd_uri_t uri_led_off = {.uri = "/led/off",
+                                        .method = HTTP_GET,
+                                        .handler = led_off_handler,
+                                        .user_ctx = NULL};
 
 static httpd_handle_t start_webserver(void)
 {
@@ -150,8 +140,7 @@ static httpd_handle_t start_webserver(void)
     config.lru_purge_enable = true;
 
     ESP_LOGI(THREAD_TAG, "Starting server on port: '%d'", config.server_port);
-    if (!httpd_start(&server, &config) == ESP_OK)
-    {
+    if (!httpd_start(&server, &config) == ESP_OK) {
         ESP_LOGI(THREAD_TAG, "Error starting server!");
         return NULL;
     }
@@ -161,20 +150,19 @@ static httpd_handle_t start_webserver(void)
     return server;
 }
 
-static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+static void wifi_event_handler(void *arg, esp_event_base_t event_base,
+                               int32_t event_id, void *event_data)
 {
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START)
-    {
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
-    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
-    {
+    } else if (event_base == WIFI_EVENT &&
+               event_id == WIFI_EVENT_STA_DISCONNECTED) {
         ESP_LOGI(THREAD_TAG, "Disconnected. Retrying connection...");
         esp_wifi_connect();
-    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
-    {
+    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
         ESP_LOGI(THREAD_TAG, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
-        start_webserver();  /* Launch the server once IP is obtained */
+        start_webserver(); /* Launch the server once IP is obtained */
     }
 }
 
@@ -189,15 +177,22 @@ void wifi_init_sta()
 
     esp_event_handler_instance_t instance_any_id;
     esp_event_handler_instance_t instance_got_ip;
-    esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL, &instance_any_id);
-    esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL, &instance_got_ip);
+    esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID,
+                                        &wifi_event_handler, NULL,
+                                        &instance_any_id);
+    esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP,
+                                        &wifi_event_handler, NULL,
+                                        &instance_got_ip);
 
     wifi_config_t wifi_config = {};
     std::string_view ssid_view(CONFIG_WIFI_SSID);
-    std::copy_n(ssid_view.begin(), std::min(ssid_view.size(), sizeof(wifi_config.sta.ssid)), wifi_config.sta.ssid);
+    std::copy_n(ssid_view.begin(),
+                std::min(ssid_view.size(), sizeof(wifi_config.sta.ssid)),
+                wifi_config.sta.ssid);
     std::string_view pass_view(CONFIG_WIFI_PASSWORD);
-    std::copy_n(pass_view.begin(), std::min(pass_view.size(), sizeof(wifi_config.sta.password)), wifi_config.sta.password);
-
+    std::copy_n(pass_view.begin(),
+                std::min(pass_view.size(), sizeof(wifi_config.sta.password)),
+                wifi_config.sta.password);
 
     esp_wifi_set_mode(WIFI_MODE_STA);
     esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
@@ -211,14 +206,13 @@ void led_init(void)
     gpio_set_level(LED_PIN, 0);  // Initialize to OFF
 }
 
-extern "C"
+extern "C" {
+void app_main()
 {
-    void app_main()
-    {
     esp_log_level_set(THREAD_TAG, ESP_LOG_DEBUG);
     ESP_ERROR_CHECK(nvs_flash_init());
 
     wifi_init_sta();
     led_init();
-    }
+}
 }
