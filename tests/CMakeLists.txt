@@ -18,8 +18,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # by the batch script, and then reused by CMake on later runs.
 find_package(GTest CONFIG REQUIRED)
 
-# Automatically collect test sources to avoid keeping this list in sync
-# with reality. CONFIGURE_DEPENDS ensures fresh runs re-scan on changes.
+# Automatically collect test sources. CONFIGURE_DEPENDS ensures fresh runs
+# re-scan on changes.
 file(GLOB_RECURSE _test_sources
     CONFIGURE_DEPENDS
     RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
@@ -38,6 +38,10 @@ file(GLOB_RECURSE _main_sources
     CONFIGURE_DEPENDS
     ${REPO_ROOT}/main/**/*.cpp
 )
+
+# Exclude specific hardware implementations that are not meant to be compiled
+# for a host architecture
+list(FILTER _main_sources EXCLUDE REGEX "(^|/)(\\esp32)(/|$)")
 
 add_executable(${project}
     ${_test_sources}

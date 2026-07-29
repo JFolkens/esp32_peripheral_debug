@@ -20,11 +20,17 @@ extern "C" {
 
 #include <algorithm>
 #include <cstring>
+#include <memory>
 #include <string_view>
 
+#include "esp32/led_esp32.h"
+#include "hal/led/led_interface.h"
+
 /* ---- LED STUFF ----*/
-static const gpio_num_t LED_PIN = GPIO_NUM_26;
-static int led_state = 0;
+static bool led_state;
+static std::unique_ptr<rover::hal::LedInterface> blink_led =
+    std::make_unique<rover::hal::LedEsp32>(GPIO_NUM_26);
+// static LedInterface *blink_led = new LedEsp32(GPIO_NUM_26);
 
 /*
  The WIFI name is stored in KConfig.projbuild but true password
@@ -71,14 +77,17 @@ static const char *html_body_end = R"raw(
 </html>
 )raw";
 
-void update_led() { gpio_set_level(LED_PIN, led_state); }
+void update_led()
+{
+    blink_led->set(led_state);
+}
 
 void display_current_web_page(httpd_req_t *req)
 {
     httpd_resp_send_chunk(req, html_page_header, HTTPD_RESP_USE_STRLEN);
     httpd_resp_send_chunk(req, html_body_start, HTTPD_RESP_USE_STRLEN);
 
-    if (led_state == 0) {
+    if (led_state == false) {
         httpd_resp_send_chunk(req, html_button_off, HTTPD_RESP_USE_STRLEN);
     } else {
         httpd_resp_send_chunk(req, html_button_on, HTTPD_RESP_USE_STRLEN);
@@ -99,7 +108,7 @@ static esp_err_t root_get_handler(httpd_req_t *req)
 
 static esp_err_t led_on_handler(httpd_req_t *req)
 {
-    led_state = 1;
+    led_state = true;
 
     update_led();
     display_current_web_page(req);
@@ -109,7 +118,7 @@ static esp_err_t led_on_handler(httpd_req_t *req)
 
 static esp_err_t led_off_handler(httpd_req_t *req)
 {
-    led_state = 0;
+    led_state = false;
 
     update_led();
     display_current_web_page(req);
@@ -199,13 +208,6 @@ void wifi_init_sta()
     esp_wifi_start();
 }
 
-void led_init(void)
-{
-    gpio_reset_pin(LED_PIN);
-    gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(LED_PIN, 0);  // Initialize to OFF
-}
-
 extern "C" {
 void app_main()
 {
@@ -213,6 +215,5 @@ void app_main()
     ESP_ERROR_CHECK(nvs_flash_init());
 
     wifi_init_sta();
-    led_init();
 }
 }

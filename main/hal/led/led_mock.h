@@ -12,7 +12,7 @@ class LedMock : public LedInterface
     bool get() const override;
 
    private:
-    int state_{0};
+    bool state_{0};
 };
 
 }  // namespace rover::hal

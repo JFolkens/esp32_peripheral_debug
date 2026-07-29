@@ -5,7 +5,7 @@ namespace rover::hal
 
 void LedInterface::toggle()
 {
-    set(~get());
+    set(!get());
 }
 
 }  // namespace rover::hal
