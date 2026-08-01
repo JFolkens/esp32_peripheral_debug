@@ -35,13 +35,16 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
     // Invoke the high-level callback function.
     // Pass in the request, get back a response.
     Endpoint *endpoint = static_cast<Endpoint *>(req->user_ctx);
-    Request cpp_req{req->uri, body, endpoint->method};
+    Request cpp_req = {};
+    cpp_req.uri = req->uri;
+    cpp_req.body = body;
+    cpp_req.method =
+        (req->method == HTTP_GET) ? HttpMethod::GET : HttpMethod::POST;
 
-    Response cpp_resp = (endpoint->handler)(cpp_req);
+    Response cpp_resp = endpoint->handler(cpp_req);
 
     // Publish the returned webpage contents
-    httpd_resp_set_type(req, cpp_resp.content_type.c_str());
-    httpd_resp_send(req, cpp_resp.body.c_str(), cpp_resp.body.length());
+    httpd_resp_send(req, cpp_resp.body.c_str(), HTTPD_RESP_USE_STRLEN);
 
     return ESP_OK;
 }
@@ -67,34 +70,34 @@ HttpServerEsp32::HttpServerEsp32(std::string wifi_ssid,
                                         &instance_got_ip);
 
     wifi_config_t wifi_config = {};
-    std::string_view ssid_view(CONFIG_WIFI_SSID);
-    std::copy_n(ssid_view.begin(),
-                std::min(ssid_view.size(), sizeof(wifi_config.sta.ssid)),
+    std::copy_n(wifi_ssid.begin(),
+                std::min(wifi_ssid.size(), sizeof(wifi_config.sta.ssid)),
                 wifi_config.sta.ssid);
-    std::string_view pass_view(CONFIG_WIFI_PASSWORD);
-    std::copy_n(pass_view.begin(),
-                std::min(pass_view.size(), sizeof(wifi_config.sta.password)),
-                wifi_config.sta.password);
+    std::copy_n(
+        wifi_password.begin(),
+        std::min(wifi_password.size(), sizeof(wifi_config.sta.password)),
+        wifi_config.sta.password);
 
     esp_wifi_set_mode(WIFI_MODE_STA);
     esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
     esp_wifi_start();
 }
 
-void HttpServerEsp32::add_endpoint(std::string uri, Endpoint e)
+void HttpServerEsp32::add_endpoint(std::string uri, const Endpoint &e)
 {
     HttpServerInterface::add_endpoint(uri, e);
 
     if (is_connected) {
         // This endpoint was not present when we started the web server.
         // A new webserver registers all endpoints, but this one is missing
-        register_endpoint(uri, e);
+        register_endpoint(uri);
     }
 }
 
 // ------ Private functions ------ //
-void HttpServerEsp32::register_endpoint(std::string uri_path, Endpoint endpoint)
+void HttpServerEsp32::register_endpoint(const std::string &uri_path)
 {
+    auto &endpoint = endpoints.at(uri_path);
     const httpd_uri_t uri = {
         .uri = uri_path.c_str(),
         .method = (endpoint.method == HttpMethod::GET) ? HTTP_GET : HTTP_POST,
@@ -117,7 +120,7 @@ void HttpServerEsp32::start_webserver()
     }
 
     for (auto &[uri_path, endpoint] : endpoints) {
-        register_endpoint(uri_path, endpoint);
+        register_endpoint(uri_path);
     }
 }
 

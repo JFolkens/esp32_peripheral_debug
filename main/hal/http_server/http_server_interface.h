@@ -29,6 +29,7 @@ struct Response
     std::string body;
 };
 
+// using endpoint = std::function<Response(const Request &)>;
 typedef struct Endpoint_t
 {
     std::function<Response(const Request &)> handler;
@@ -40,7 +41,7 @@ class HttpServerInterface
    public:
     virtual ~HttpServerInterface() = default;
 
-    virtual void add_endpoint(std::string uri, Endpoint e);
+    virtual void add_endpoint(std::string uri, const Endpoint &e);
 
    protected:
     std::map<std::string, Endpoint> endpoints;

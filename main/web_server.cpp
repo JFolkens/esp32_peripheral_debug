@@ -23,14 +23,17 @@ extern "C" {
 #include <memory>
 #include <string_view>
 
+#include "esp32/http_server_esp32.h"
 #include "esp32/led_esp32.h"
+#include "hal/http_server/http_server_interface.h"
 #include "hal/led/led_interface.h"
+
+/* ----- Hardware objects -----*/
+rover::hal::LedInterface *blink_led;
+rover::hal::HttpServerInterface *debug_server;
 
 /* ---- LED STUFF ----*/
 static bool led_state;
-static std::unique_ptr<rover::hal::LedInterface> blink_led =
-    std::make_unique<rover::hal::LedEsp32>(GPIO_NUM_26);
-// static LedInterface *blink_led = new LedEsp32(GPIO_NUM_26);
 
 /*
  The WIFI name is stored in KConfig.projbuild but true password
@@ -41,6 +44,7 @@ static std::unique_ptr<rover::hal::LedInterface> blink_led =
 */
 #include "wifi_password.h"
 
+/* ---- WIFI STUFF ----- */
 static const char *THREAD_TAG = "WEB_SERVER";
 
 static const char *html_page_header = R"raw(
@@ -82,137 +86,56 @@ void update_led()
     blink_led->set(led_state);
 }
 
-void display_current_web_page(httpd_req_t *req)
+std::string get_current_web_page()
 {
-    httpd_resp_send_chunk(req, html_page_header, HTTPD_RESP_USE_STRLEN);
-    httpd_resp_send_chunk(req, html_body_start, HTTPD_RESP_USE_STRLEN);
+    std::string html = std::string(html_page_header) + html_body_start;
 
     if (led_state == false) {
-        httpd_resp_send_chunk(req, html_button_off, HTTPD_RESP_USE_STRLEN);
+        html += html_button_off;
     } else {
-        httpd_resp_send_chunk(req, html_button_on, HTTPD_RESP_USE_STRLEN);
+        html += html_button_on;
     }
-    httpd_resp_send_chunk(req, html_body_end, HTTPD_RESP_USE_STRLEN);
-    // End the response with a final chunk of length 0 to signal completion
-    httpd_resp_send_chunk(req, NULL, 0);
+    html += html_body_end;
+
+    return html;
 }
 
 /* HTTP GET Handler */
-static esp_err_t root_get_handler(httpd_req_t *req)
+static rover::hal::Response root_get_handler(const rover::hal::Request &req)
 {
     update_led();
-    display_current_web_page(req);
 
-    return ESP_OK;
+    rover::hal::Response r = {};
+    r.body = get_current_web_page();
+    return r;
 }
 
-static esp_err_t led_on_handler(httpd_req_t *req)
+static rover::hal::Response led_on_handler(const rover::hal::Request &req)
 {
     led_state = true;
-
-    update_led();
-    display_current_web_page(req);
-
-    return ESP_OK;
+    return root_get_handler(req);
 }
 
-static esp_err_t led_off_handler(httpd_req_t *req)
+static rover::hal::Response led_off_handler(const rover::hal::Request &req)
 {
     led_state = false;
-
-    update_led();
-    display_current_web_page(req);
-
-    return ESP_OK;
+    return root_get_handler(req);
 }
 
-/* URI Structure mapping the handler to the root path "/" */
-static const httpd_uri_t uri_root = {
-    .uri = "/",
-    .method = HTTP_GET,
+rover::hal::Endpoint root = {
     .handler = root_get_handler,
-    .user_ctx = NULL,
+    .method = rover::hal::HttpMethod::GET,
 };
 
-static const httpd_uri_t uri_led_on = {
-    .uri = "/led/on",
-    .method = HTTP_GET,
+rover::hal::Endpoint led_on = {
     .handler = led_on_handler,
-    .user_ctx = NULL,
+    .method = rover::hal::HttpMethod::GET,
 };
 
-static const httpd_uri_t uri_led_off = {
-    .uri = "/led/off",
-    .method = HTTP_GET,
+rover::hal::Endpoint led_off = {
     .handler = led_off_handler,
-    .user_ctx = NULL,
+    .method = rover::hal::HttpMethod::GET,
 };
-
-static httpd_handle_t start_webserver(void)
-{
-    httpd_handle_t server = NULL;
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.lru_purge_enable = true;
-
-    ESP_LOGI(THREAD_TAG, "Starting server on port: '%d'", config.server_port);
-    if (!httpd_start(&server, &config) == ESP_OK) {
-        ESP_LOGI(THREAD_TAG, "Error starting server!");
-        return NULL;
-    }
-    httpd_register_uri_handler(server, &uri_root);
-    httpd_register_uri_handler(server, &uri_led_on);
-    httpd_register_uri_handler(server, &uri_led_off);
-    return server;
-}
-
-static void wifi_event_handler(void *arg, esp_event_base_t event_base,
-                               int32_t event_id, void *event_data)
-{
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
-        esp_wifi_connect();
-    } else if (event_base == WIFI_EVENT &&
-               event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        ESP_LOGI(THREAD_TAG, "Disconnected. Retrying connection...");
-        esp_wifi_connect();
-    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
-        ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-        ESP_LOGI(THREAD_TAG, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
-        start_webserver(); /* Launch the server once IP is obtained */
-    }
-}
-
-void wifi_init_sta()
-{
-    esp_event_loop_create_default();
-    esp_netif_init();
-    esp_netif_create_default_wifi_sta();
-
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    esp_wifi_init(&cfg);
-
-    esp_event_handler_instance_t instance_any_id;
-    esp_event_handler_instance_t instance_got_ip;
-    esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID,
-                                        &wifi_event_handler, NULL,
-                                        &instance_any_id);
-    esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP,
-                                        &wifi_event_handler, NULL,
-                                        &instance_got_ip);
-
-    wifi_config_t wifi_config = {};
-    std::string_view ssid_view(CONFIG_WIFI_SSID);
-    std::copy_n(ssid_view.begin(),
-                std::min(ssid_view.size(), sizeof(wifi_config.sta.ssid)),
-                wifi_config.sta.ssid);
-    std::string_view pass_view(CONFIG_WIFI_PASSWORD);
-    std::copy_n(pass_view.begin(),
-                std::min(pass_view.size(), sizeof(wifi_config.sta.password)),
-                wifi_config.sta.password);
-
-    esp_wifi_set_mode(WIFI_MODE_STA);
-    esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
-    esp_wifi_start();
-}
 
 extern "C" {
 void app_main()
@@ -220,6 +143,18 @@ void app_main()
     esp_log_level_set(THREAD_TAG, ESP_LOG_DEBUG);
     ESP_ERROR_CHECK(nvs_flash_init());
 
-    wifi_init_sta();
+    esp_event_loop_create_default();
+
+    std::string ssid = CONFIG_WIFI_SSID;
+    std::string password = CONFIG_WIFI_PASSWORD;
+    debug_server = new rover::hal::HttpServerEsp32(ssid, password);
+
+    debug_server->add_endpoint("/", root);
+
+    debug_server->add_endpoint("/led/on", led_on);
+
+    debug_server->add_endpoint("/led/off", led_off);
+
+    blink_led = new rover::hal::LedEsp32(GPIO_NUM_26);
 }
 }

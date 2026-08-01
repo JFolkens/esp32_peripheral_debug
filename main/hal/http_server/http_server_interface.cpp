@@ -3,7 +3,7 @@
 namespace rover::hal
 {
 
-void HttpServerInterface::add_endpoint(std::string uri, Endpoint e)
+void HttpServerInterface::add_endpoint(std::string uri, const Endpoint &e)
 {
     endpoints[uri] = e;
 }

@@ -1,5 +1,4 @@
 menu "WIFI CONNECT"
-
 config WIFI_SSID
     string "SSID"
     default "Blocker I Hardly Know Her"
@@ -7,5 +6,16 @@ config WIFI_SSID
 config WIFI_PASSWORD
     string "PASSWORD"
     default "hidden"
+
+endmenu
+
+menu "ESP32"
+config COMPILER_CXX_EXCEPTIONS
+    bool "Support exceptions"
+    default y
+
+config COMPILER_CXX_EXCEPTIONS_ENG_POOL_SIZE
+    int "Size of exception pool"
+    default 1024
 
 endmenu

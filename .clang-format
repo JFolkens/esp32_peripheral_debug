@@ -22,11 +22,6 @@ BraceWrapping:
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
 
-# If multi-line initializer, closing bracket should be on new line
-Cpp11BracedListStyle: true
-# AlignAfterOpenBracket: BlockIndent
-# BreakBeforeCloseBracketBracedList: true
-
 # clang-format has no option for being "indifferent" to single line statements.
 # This prevents the formatter from forcing short statements onto one line.
 AllowShortFunctionsOnASingleLine: None
