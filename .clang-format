@@ -1,7 +1,31 @@
 BasedOnStyle: Google
-BreakBeforeBraces: Linux
 IndentWidth: 4
 PointerAlignment: Right
+
+# Custom BreakBeforeBraces is derived from "Linux"
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: true
+  AfterObjCDeclaration: false
+  AfterStruct: true  # Change from "Linux"
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+
+# If multi-line initializer, closing bracket should be on new line
+Cpp11BracedListStyle: true
+# AlignAfterOpenBracket: BlockIndent
+# BreakBeforeCloseBracketBracedList: true
 
 # clang-format has no option for being "indifferent" to single line statements.
 # This prevents the formatter from forcing short statements onto one line.

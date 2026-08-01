@@ -127,20 +127,26 @@ static esp_err_t led_off_handler(httpd_req_t *req)
 }
 
 /* URI Structure mapping the handler to the root path "/" */
-static const httpd_uri_t uri_root = {.uri = "/",
-                                     .method = HTTP_GET,
-                                     .handler = root_get_handler,
-                                     .user_ctx = NULL};
+static const httpd_uri_t uri_root = {
+    .uri = "/",
+    .method = HTTP_GET,
+    .handler = root_get_handler,
+    .user_ctx = NULL,
+};
 
-static const httpd_uri_t uri_led_on = {.uri = "/led/on",
-                                       .method = HTTP_GET,
-                                       .handler = led_on_handler,
-                                       .user_ctx = NULL};
+static const httpd_uri_t uri_led_on = {
+    .uri = "/led/on",
+    .method = HTTP_GET,
+    .handler = led_on_handler,
+    .user_ctx = NULL,
+};
 
-static const httpd_uri_t uri_led_off = {.uri = "/led/off",
-                                        .method = HTTP_GET,
-                                        .handler = led_off_handler,
-                                        .user_ctx = NULL};
+static const httpd_uri_t uri_led_off = {
+    .uri = "/led/off",
+    .method = HTTP_GET,
+    .handler = led_off_handler,
+    .user_ctx = NULL,
+};
 
 static httpd_handle_t start_webserver(void)
 {
@@ -177,8 +183,8 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 
 void wifi_init_sta()
 {
-    esp_netif_init();
     esp_event_loop_create_default();
+    esp_netif_init();
     esp_netif_create_default_wifi_sta();
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
