@@ -40,6 +40,9 @@ static rover::hal::HttpServerInterface *debug_server;
 static rover::web::PeripheralInterface *green_led_web;
 static rover::web::PeripheralInterface *red_led_web;
 
+// --- Web application
+static rover::web::DeviceWebApp *app;
+
 extern "C" {
 void app_main()
 {
@@ -54,13 +57,13 @@ void app_main()
     red_led = new rover::hal::LedEsp32(GPIO_NUM_27);
 
     // ---- Html rendering application ----
-    rover::web::DeviceWebApp app(*debug_server);
+    app = new rover::web::DeviceWebApp(*debug_server);
 
     // --- Add peripherals to webpage ----
     green_led_web = new rover::web::LedWeb("green_led", green_led);
     red_led_web = new rover::web::LedWeb("red_led", red_led);
 
-    app.add_peripheral(green_led_web);
-    app.add_peripheral(red_led_web);
+    app->add_peripheral(green_led_web);
+    app->add_peripheral(red_led_web);
 }
 }

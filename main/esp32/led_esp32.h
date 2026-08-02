@@ -18,5 +18,6 @@ class LedEsp32 : public LedInterface
 
    private:
     const gpio_num_t pin;
+    bool state;
 };
 }  // namespace rover::hal
