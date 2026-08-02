@@ -34,14 +34,17 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
 
     // Invoke the high-level callback function.
     // Pass in the request, get back a response.
-    Endpoint *endpoint = static_cast<Endpoint *>(req->user_ctx);
+    endpoint *endpoint_ = static_cast<endpoint *>(req->user_ctx);
     Request cpp_req = {};
     cpp_req.uri = req->uri;
     cpp_req.body = body;
-    cpp_req.method =
-        (req->method == HTTP_GET) ? HttpMethod::GET : HttpMethod::POST;
-
-    Response cpp_resp = endpoint->handler(cpp_req);
+    // Convert ESP32 method to interface method
+    if (req->method == HTTP_GET) {
+        cpp_req.method = HttpMethod::GET;
+    } else {
+        cpp_req.method = HttpMethod::POST;
+    }
+    Response cpp_resp = (*endpoint_)(cpp_req);
 
     // Publish the returned webpage contents
     httpd_resp_send(req, cpp_resp.body.c_str(), HTTPD_RESP_USE_STRLEN);
@@ -83,26 +86,28 @@ HttpServerEsp32::HttpServerEsp32(std::string wifi_ssid,
     esp_wifi_start();
 }
 
-void HttpServerEsp32::add_endpoint(std::string uri, const Endpoint &e)
+void HttpServerEsp32::add_endpoint(std::string uri, HttpMethod method,
+                                   const endpoint &e)
 {
-    HttpServerInterface::add_endpoint(uri, e);
+    HttpServerInterface::add_endpoint(uri, method, e);
 
     if (is_connected) {
         // This endpoint was not present when we started the web server.
         // A new webserver registers all endpoints, but this one is missing
-        register_endpoint(uri);
+        register_endpoint(uri, method);
     }
 }
 
 // ------ Private functions ------ //
-void HttpServerEsp32::register_endpoint(const std::string &uri_path)
+void HttpServerEsp32::register_endpoint(const std::string &uri_path,
+                                        const HttpMethod &method)
 {
-    auto &endpoint = endpoints.at(uri_path);
+    auto &endpoint_ = endpoints.at({uri_path, method});
     const httpd_uri_t uri = {
         .uri = uri_path.c_str(),
-        .method = (endpoint.method == HttpMethod::GET) ? HTTP_GET : HTTP_POST,
+        .method = (method == HttpMethod::GET) ? HTTP_GET : HTTP_POST,
         .handler = esp32_uri_handler,
-        .user_ctx = static_cast<void *>(&endpoint),
+        .user_ctx = static_cast<void *>(&endpoint_),
     };
     httpd_register_uri_handler(connection, &uri);
 }
@@ -119,8 +124,9 @@ void HttpServerEsp32::start_webserver()
         return;
     }
 
-    for (auto &[uri_path, endpoint] : endpoints) {
-        register_endpoint(uri_path);
+    for (auto &[uri, endpoint] : endpoints) {
+        auto [uri_path, method] = uri;
+        register_endpoint(uri_path, method);
     }
 }
 

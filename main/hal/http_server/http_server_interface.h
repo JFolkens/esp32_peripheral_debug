@@ -29,22 +29,20 @@ struct Response
     std::string body;
 };
 
-// using endpoint = std::function<Response(const Request &)>;
-typedef struct Endpoint_t
-{
-    std::function<Response(const Request &)> handler;
-    HttpMethod method;
-} Endpoint;
+using endpoint = std::function<Response(const Request &)>;
 
 class HttpServerInterface
 {
    public:
     virtual ~HttpServerInterface() = default;
 
-    virtual void add_endpoint(std::string uri, const Endpoint &e);
+    virtual void add_endpoint(std::string uri, HttpMethod method,
+                              const endpoint &e);
 
    protected:
-    std::map<std::string, Endpoint> endpoints;
+    // The purpose of storing endpoints is so that connection can
+    // be re-created while server maintains functionality.
+    std::map<std::pair<std::string, HttpMethod>, endpoint> endpoints;
 };
 
 }  // namespace rover::hal
