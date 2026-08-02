@@ -30,7 +30,7 @@ void DeviceWebApp::add_peripheral(PeripheralInterface *peripheral)
         server.add_endpoint(endpoint.uri, endpoint.method, ep_callback);
     }
 }
-// 0x3ffbc100
+
 std::string DeviceWebApp::render_page() const
 {
     std::string html;
