@@ -119,7 +119,7 @@ void HttpServerEsp32::start_webserver()
 
     ESP_LOGI(HTTP_SERVER_TAG, "Starting server on port: '%d'",
              config.server_port);
-    if (!httpd_start(&connection, &config) == ESP_OK) {
+    if (httpd_start(&connection, &config) != ESP_OK) {
         ESP_LOGI(HTTP_SERVER_TAG, "Error starting server!");
         return;
     }
