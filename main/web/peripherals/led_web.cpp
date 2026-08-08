@@ -24,7 +24,7 @@ std::string html_button_for_state(const std::string &id, bool is_on)
 
 }  // namespace
 
-LedWeb::LedWeb(const std::string &name_, rover::hal::LedInterface *led_)
+LedWeb::LedWeb(const std::string &name_, rover::hal::GpioInterface *led_)
     : PeripheralInterface(name_), led(led_)
 {
     // Empty

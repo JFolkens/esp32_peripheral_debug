@@ -15,8 +15,9 @@ extern "C" {
 #include <memory>
 #include <string>
 
+#include "esp32/gpio_esp32.h"
 #include "esp32/http_server_esp32.h"
-#include "esp32/led_esp32.h"
+#include "hal/gpio/gpio_interface.h"
 #include "web/device_web_app.h"
 #include "web/peripherals/led_web.h"
 
@@ -32,8 +33,8 @@ extern "C" {
 static const char *THREAD_TAG = "WEB_SERVER";
 
 // ---- Hardware
-static rover::hal::LedInterface *green_led;
-static rover::hal::LedInterface *red_led;
+static rover::hal::GpioInterface *green_led;
+static rover::hal::GpioInterface *red_led;
 static rover::hal::HttpServerInterface *debug_server;
 
 // ---- Web Peripheral Integrations
@@ -53,8 +54,10 @@ void app_main()
     // ---- Hardware initializations ----
     debug_server =
         new rover::hal::HttpServerEsp32(CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
-    green_led = new rover::hal::LedEsp32(GPIO_NUM_26);
-    red_led = new rover::hal::LedEsp32(GPIO_NUM_27);
+    green_led = new rover::hal::GpioEsp32(rover::hal::GpioDirection::OUTPUT,
+                                          GPIO_NUM_26);
+    red_led = new rover::hal::GpioEsp32(rover::hal::GpioDirection::OUTPUT,
+                                        GPIO_NUM_27);
 
     // ---- Html rendering application ----
     app = new rover::web::DeviceWebApp(*debug_server);
