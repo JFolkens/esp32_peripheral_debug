@@ -36,7 +36,7 @@ class PwmInterface
 
     /* Protected methods for implementation in concrete class */
     virtual void set_speed_(float speed) = 0;
-    virtual void turn_off_();
+    virtual void turn_off_() = 0;
 };
 
 }  // namespace rover::hal

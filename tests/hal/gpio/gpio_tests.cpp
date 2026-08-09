@@ -36,8 +36,11 @@ TEST(GpioMockTest, InputGpioRejectsSet)
 {
     GpioMock gpio(rover::hal::GpioDirection::INPUT);
 
-    EXPECT_THROW(gpio.set(true), std::runtime_error);
-    EXPECT_THROW(gpio.set(false), std::runtime_error);
+    // TODO: Need to coordinate error handling with embedded device.
+    //    Supporting errors makes partition too large. Also, not
+    //    sure we want them anyway. Instead do logging module with log_err.
+    // EXPECT_THROW(gpio.set(true), std::runtime_error);
+    // EXPECT_THROW(gpio.set(false), std::runtime_error);
 }
 
 TEST(GpioMockTest, InputGpioCanReadCurrentValue)

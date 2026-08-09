@@ -1,7 +1,5 @@
 #include "gpio_interface.h"
 
-#include <stdexcept>
-
 namespace rover::hal
 {
 
@@ -14,7 +12,8 @@ GpioInterface::GpioInterface(const GpioDirection &direction_)
 void GpioInterface::set(bool val)
 {
     if (direction == GpioDirection::INPUT) {
-        throw std::runtime_error("Can not call gpio.set on input gpio.");
+        // TODO: Throw error
+        // throw std::runtime_error("Can not call gpio.set on input gpio.");
     } else {
         _set(val);
         state = val;

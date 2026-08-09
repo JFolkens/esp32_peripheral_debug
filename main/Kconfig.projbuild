@@ -9,13 +9,16 @@ config WIFI_PASSWORD
 
 endmenu
 
-menu "ESP32"
-config COMPILER_CXX_EXCEPTIONS
-    bool "Support exceptions"
-    default y
+# ESP32 uses default 2MB to support all possible chips
+# We have more flash; use it
+CONFIG_ESPTOOLPY_FLASHSIZE="4MB"
+# menu "ESP32"
+# config COMPILER_CXX_EXCEPTIONS
+#     bool "Support exceptions"
+#     default y
 
-config COMPILER_CXX_EXCEPTIONS_ENG_POOL_SIZE
-    int "Size of exception pool"
-    default 1024
+# config COMPILER_CXX_EXCEPTIONS_ENG_POOL_SIZE
+#     int "Size of exception pool"
+#     default 1024
 
-endmenu
+# endmenu
