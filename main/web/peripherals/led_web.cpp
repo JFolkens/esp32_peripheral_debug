@@ -5,38 +5,32 @@
 namespace rover::web
 {
 
-namespace
-{
-
-std::string html_button_for_state(const std::string &id, bool is_on)
-{
-    std::string action = is_on ? "off" : "on";
-    std::string label = is_on ? "Turn OFF" : "Turn ON";
-    std::string class_name = is_on ? "button" : "button button-off";
-
-    std::stringstream ss;
-    ss << "    <p>" << id << " is currently " << (is_on ? "ON" : "OFF")
-       << "</p>\n"
-       << "    <p><a href=/" << id << "/" << action << "><button class=\""
-       << class_name << "\">" << label << "</button></a></p>\n";
-    return ss.str();
-}
-
-}  // namespace
-
 LedWeb::LedWeb(const std::string &name_, rover::hal::GpioInterface *led_)
     : PeripheralInterface(name_), led(led_)
 {
     // Empty
 }
 
-std::string LedWeb::render_html() const
+std::string LedWeb::html_state() const
 {
+    // LED is either on or off.
+    std::string state = led->get() ? "off" : "on";
+
+    return name + " is currently " + state;
+}
+
+std::string LedWeb::html_control() const
+{
+    // If we are on, show a button "Turn off".
+    // If we are off, show a button "Turn on".
+    bool is_on = led->get();
+    std::string action = is_on ? "off" : "on";
+    std::string label = is_on ? "Turn OFF" : "Turn ON";
+    std::string class_name = is_on ? "button" : "button button-off";
+
     std::stringstream ss;
-    ss << "    <div class=\"card\">\n"
-       << "        <h2>" << name << "</h2>\n"
-       << html_button_for_state(name, led->get()) << "\n"
-       << "    </div>\n";
+    ss << "<a href=/" << name << "/" << action << "><button class=\""
+       << class_name << "\">" << label << "</button></a>";
     return ss.str();
 }
 

@@ -3,6 +3,7 @@
 */
 
 extern "C" {
+#include "driver/ledc.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_system.h"
@@ -17,9 +18,12 @@ extern "C" {
 
 #include "esp32/gpio_esp32.h"
 #include "esp32/http_server_esp32.h"
+#include "esp32/pwm_esp32.h"
 #include "hal/gpio/gpio_interface.h"
+#include "hal/pwm/pwm_interface.h"
 #include "web/device_web_app.h"
 #include "web/peripherals/led_web.h"
+#include "web/peripherals/pwm_web.h"
 
 /*
  The WIFI name is stored in KConfig.projbuild but true password
@@ -32,14 +36,26 @@ extern "C" {
 
 static const char *THREAD_TAG = "WEB_SERVER";
 
+using namespace rover::hal;
+using namespace rover::web;
+
 // ---- Hardware
-static rover::hal::GpioInterface *green_led;
-static rover::hal::GpioInterface *red_led;
-static rover::hal::HttpServerInterface *debug_server;
+static GpioInterface *green_led;
+static GpioInterface *red_led;
+static HttpServerInterface *debug_server;
+
+// Temporary: L298N motor as two GPIOs and a PWM
+static GpioInterface *motor_forward;
+static GpioInterface *motor_reverse;
+static PwmInterface *motor_speed;
 
 // ---- Web Peripheral Integrations
 static rover::web::PeripheralInterface *green_led_web;
 static rover::web::PeripheralInterface *red_led_web;
+
+static rover::web::PeripheralInterface *motor_forward_web;
+static rover::web::PeripheralInterface *motor_reverse_web;
+static rover::web::PeripheralInterface *motor_speed_web;
 
 // --- Web application
 static rover::web::DeviceWebApp *app;
@@ -52,12 +68,13 @@ void app_main()
     esp_event_loop_create_default();
 
     // ---- Hardware initializations ----
-    debug_server =
-        new rover::hal::HttpServerEsp32(CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
-    green_led = new rover::hal::GpioEsp32(rover::hal::GpioDirection::OUTPUT,
-                                          GPIO_NUM_26);
-    red_led = new rover::hal::GpioEsp32(rover::hal::GpioDirection::OUTPUT,
-                                        GPIO_NUM_27);
+    debug_server = new HttpServerEsp32(CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
+    green_led = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_26);
+    red_led = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_27);
+
+    motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_5);
+    motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_18);
+    motor_speed = new PwmEsp32(GPIO_NUM_19, LEDC_CHANNEL_0, LEDC_TIMER_0);
 
     // ---- Html rendering application ----
     app = new rover::web::DeviceWebApp(*debug_server);
@@ -66,7 +83,15 @@ void app_main()
     green_led_web = new rover::web::LedWeb("green_led", green_led);
     red_led_web = new rover::web::LedWeb("red_led", red_led);
 
+    motor_forward_web = new rover::web::LedWeb("m_forward", motor_forward);
+    motor_reverse_web = new rover::web::LedWeb("m_reverse", motor_reverse);
+    motor_speed_web = new rover::web::PwmWeb("m_speed", motor_speed);
+
     app->add_peripheral(green_led_web);
     app->add_peripheral(red_led_web);
+
+    app->add_peripheral(motor_forward_web);
+    app->add_peripheral(motor_reverse_web);
+    app->add_peripheral(motor_speed_web);
 }
 }

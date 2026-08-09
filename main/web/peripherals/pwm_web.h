@@ -3,16 +3,16 @@
 #include <string>
 #include <vector>
 
-#include "../../hal/gpio/gpio_interface.h"
+#include "../../hal/pwm/pwm_interface.h"
 #include "peripheral_interface.h"
 
 namespace rover::web
 {
 
-class LedWeb : public PeripheralInterface
+class PwmWeb : public PeripheralInterface
 {
    public:
-    LedWeb(const std::string &name_, rover::hal::GpioInterface *led_);
+    PwmWeb(const std::string &name_, rover::hal::PwmInterface *pwm_);
 
     std::string html_state() const override;
     std::string html_control() const override;
@@ -20,7 +20,7 @@ class LedWeb : public PeripheralInterface
     void handle_action(const std::string &action) override;
 
    private:
-    rover::hal::GpioInterface *led;
+    rover::hal::PwmInterface *pwm;
 };
 
 }  // namespace rover::web
