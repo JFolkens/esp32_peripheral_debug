@@ -25,7 +25,12 @@ std::string PwmWeb::html_state() const
     if (!is_on) {
         return name + " is set to OFF";
     } else {
-        return name + " is set to " + std::to_string(speed) + "% speed";
+        // Avoid std::to_string which pulls in the giant file
+        // "floating_to_chars" We know speed <= 100 and printing with zero
+        // decimal places is fine
+        char buffer[4];
+        std::snprintf(buffer, sizeof(buffer), "%.0f", speed);
+        return name + " is set to " + buffer + "% speed";
     }
 }
 

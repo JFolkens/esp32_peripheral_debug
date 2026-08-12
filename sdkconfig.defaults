@@ -1,0 +1,20 @@
+
+# ESP32 default is 2MB flash. The Dev Kit V1 has 4MB.
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+
+# Tell partition table to leverage the full 4MB.
+# This is a magic command that changes the default partitions.csv;
+# if we want more customization, we can supply a custom partition file
+CONFIG_PARTITION_TABLE_SINGLE_APP=n         # Boards with 2MB flash
+CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y   # ESP32 Dev Kit V1
+
+# This app doesn't use bluetooth. Save some space
+CONFIG_BT_ENABLED=n
+
+# Website transmits plaintext. We don't handle any passwords etc,
+# and this gets rid of the bulky crypto libraries
+CONFIG_ESP_HTTP_CLIENT_ENABLE_HTTPS=n
+
+# I don't know why the default is including ethernet
+# There is no ethernet port; disable
+CONFIG_ETH_ENABLED=n
