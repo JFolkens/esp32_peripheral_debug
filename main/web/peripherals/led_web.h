@@ -17,7 +17,7 @@ class LedWeb : public PeripheralInterface
     std::string html_state() const override;
     std::string html_control() const override;
     std::vector<EndpointDefinition> endpoints() const override;
-    void handle_action(const std::string &action) override;
+    void handle_action(const rover::hal::Request &action) override;
 
    private:
     rover::hal::GpioInterface *led;

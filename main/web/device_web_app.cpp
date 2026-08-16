@@ -20,9 +20,8 @@ void DeviceWebApp::add_peripheral(PeripheralInterface *peripheral)
     peripherals.push_back(peripheral);
 
     for (const EndpointDefinition &endpoint : peripheral->endpoints()) {
-        auto ep_callback = [this, peripheral, action = endpoint.action](
-                               const rover::hal::Request &req) {
-            peripheral->handle_action(action);  // Update hardware
+        auto ep_callback = [this, peripheral](const rover::hal::Request &req) {
+            peripheral->handle_action(req);  // Update hardware
             rover::hal::Response response = {};
             response.body = render_page();  // Hardware status as html webpage
             return response;

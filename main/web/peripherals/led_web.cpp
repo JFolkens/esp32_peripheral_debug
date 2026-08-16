@@ -14,7 +14,7 @@ LedWeb::LedWeb(const std::string &name_, rover::hal::GpioInterface *led_)
 std::string LedWeb::html_state() const
 {
     // LED is either on or off.
-    std::string state = led->get() ? "off" : "on";
+    std::string state = led->get() ? "on" : "off";
 
     return name + " is currently " + state;
 }
@@ -42,13 +42,16 @@ std::vector<EndpointDefinition> LedWeb::endpoints() const
     return defs;
 }
 
-void LedWeb::handle_action(const std::string &action)
+void LedWeb::handle_action(const rover::hal::Request &action)
 {
-    if (action == "on") {
+    size_t cmd_start = action.uri.rfind("/");
+
+    std::string cmd = action.uri.substr(cmd_start + 1);
+    if (cmd == "on") {
         led->set(true);
     }
 
-    if (action == "off") {
+    if (cmd == "off") {
         led->set(false);
     }
 }

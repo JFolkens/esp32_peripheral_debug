@@ -39,7 +39,7 @@ class PeripheralInterface
     /**
      * @brief Respond to a user action.
      */
-    virtual void handle_action(const std::string &action) = 0;
+    virtual void handle_action(const rover::hal::Request &req) = 0;
 
    protected:
     /**

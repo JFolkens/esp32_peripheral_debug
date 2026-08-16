@@ -54,10 +54,14 @@ PwmEsp32::PwmEsp32(gpio_num_t pin_, ledc_channel_t ch_, ledc_timer_t timer_,
 
 void PwmEsp32::set_speed_(float speed)
 {
-    if (speed < 0.0f)
+    // If user is setting < 5 or > 95, they likely intended 0 or 100
+    // 5% is often not enough to be visible, but enough to drain battery
+    if (speed < 5.0f) {
         speed = 0.0f;
-    if (speed > 100.0f)
+    } else if (speed > 95.0f) {
         speed = 100.0f;
+    }
+    ESP_LOGI("PwmEsp32", "Setting speed: %f", speed);
 
     uint32_t duty = static_cast<uint32_t>((speed / 100.0f) * max_duty);
 

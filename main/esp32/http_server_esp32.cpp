@@ -116,6 +116,10 @@ void HttpServerEsp32::start_webserver()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.lru_purge_enable = true;
+    // We have a lot of URIs. If this gets to be a problem, re-architect
+    // web peripherals to use single endpoint /name?action
+    // instead of /name/action. Or put all on a single endpoint /do?name_action.
+    config.max_uri_handlers = 32;
 
     ESP_LOGI(HTTP_SERVER_TAG, "Starting server on port: '%d'",
              config.server_port);
