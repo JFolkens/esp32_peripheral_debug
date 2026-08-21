@@ -1,7 +1,8 @@
 #include "http_server_esp32.h"
 
+#include "../hal/log/logging.h"
+
 extern "C" {
-#include "esp_log.h"
 #include "esp_wifi.h"
 }
 
@@ -121,8 +122,9 @@ void HttpServerEsp32::start_webserver()
     // instead of /name/action. Or put all on a single endpoint /do?name_action.
     config.max_uri_handlers = 32;
 
-    ESP_LOGI(HTTP_SERVER_TAG, "Starting server on port: '%d'",
+    log_info(HTTP_SERVER_TAG, "Starting server on port: '%d",
              config.server_port);
+
     if (httpd_start(&connection, &config) != ESP_OK) {
         ESP_LOGI(HTTP_SERVER_TAG, "Error starting server!");
         return;

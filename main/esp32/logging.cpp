@@ -7,18 +7,24 @@ extern "C" {
 namespace rover::hal
 {
 
-void log_error(const char *tag, const char *message)
+void log_error(const char *tag, const char *message, ...)
 {
-    ESP_LOGE(tag, "%s", message);
+    va_list args;
+    va_start(args, message);
+    esp_log_writev(ESP_LOG_INFO, tag, message, args);
 }
 
-void log_warning(const char *tag, const char *message)
+void log_warning(const char *tag, const char *message, ...)
 {
-    ESP_LOGW(tag, "%s", message);
+    va_list args;
+    va_start(args, message);
+    esp_log_writev(ESP_LOG_WARN, tag, message, args);
 }
 
-void log_info(const char *tag, const char *message)
+void log_info(const char *tag, const char *message, ...)
 {
-    ESP_LOGI(tag, "%s", message);
+    va_list args;
+    va_start(args, message);
+    esp_log_writev(ESP_LOG_INFO, tag, message, args);
 }
 }  // namespace rover::hal
