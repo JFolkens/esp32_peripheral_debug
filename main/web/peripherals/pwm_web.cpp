@@ -104,7 +104,10 @@ void PwmWeb::handle_action(const rover::hal::Request &action)
     std::string subs = action.uri.substr(num_start + param.size());
     float speed = std::stof(subs);
 
-    if (speed == 0) {
+    // 5% is low enough that user likely meant to drag slider to zero.
+    // If this was an LED dimmer, it would appear "off" at 5%, but
+    // continue to drain battery. So we coerce user value to 0.
+    if (speed <= 5.0f) {
         pwm->turn_off();
     } else {
         pwm->set_speed(speed);

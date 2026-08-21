@@ -31,7 +31,7 @@ class PwmInterface
     bool is_on();
 
    protected:
-    float speed;
+    float speed_;
     bool is_on_;
 
     /* Protected methods for implementation in concrete class */

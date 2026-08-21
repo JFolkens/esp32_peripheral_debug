@@ -5,6 +5,10 @@
  */
 #pragma once
 
+#include "../gpio/gpio_interface.h"
+#include "../pwm/pwm_interface.h"
+#include "motor_interface.h"
+
 namespace rover::hal
 {
 
@@ -14,9 +18,25 @@ namespace rover::hal
  *
  * @details The L298N has a PWM for speed, and two GPIO output
  * pins for forward and reverse.
+ *
+ * In reality, each physical L298N has 6 ports and can support
+ * two MotorL298N objects, because it is a dual controller. The
+ * motors are independent and have their own unique software object.
  */
-class MotorL298N
+class MotorL298N : public MotorInterface
 {
+   public:
+    MotorL298N(PwmInterface &speed_control, GpioInterface &forward,
+               GpioInterface &reverse);
+    ~MotorL298N() = default;
+
+   protected:
+    void set_speed_(float speed) override;
+
+   private:
+    PwmInterface &_speed_control;
+    GpioInterface &_forward;
+    GpioInterface &_reverse;
 };
 
 }  // namespace rover::hal
