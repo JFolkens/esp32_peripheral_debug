@@ -4,14 +4,14 @@ namespace rover::hal
 {
 
 void HttpServerInterface::add_endpoint(std::string uri, HttpMethod method,
-                                       const endpoint &e)
+                                       const endpoint &ep)
 {
     const auto key = std::make_pair(uri, method);
     const bool is_new_endpoint = endpoints.find(key) == endpoints.end();
-    endpoints[key] = e;
+    endpoints[key] = ep;
 
     if (is_connected && is_new_endpoint) {
-        register_endpoint(uri, method);
+        register_endpoint(uri, method, ep);
     }
 }
 
@@ -36,7 +36,7 @@ void HttpServerInterface::connected()
 
     is_connected = true;
     for (const auto &[route, endpoint] : endpoints) {
-        register_endpoint(route.first, route.second);
+        register_endpoint(route.first, route.second, endpoint);
     }
 }
 

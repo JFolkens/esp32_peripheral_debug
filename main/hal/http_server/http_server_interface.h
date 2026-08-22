@@ -47,7 +47,7 @@ class HttpServerInterface
     /**
      * @brief Add a URI endpoint with associated callback.
      */
-    void add_endpoint(std::string uri, HttpMethod method, const endpoint &e);
+    void add_endpoint(std::string uri, HttpMethod method, const endpoint &ep);
 
     /**
      * @brief Respond to URI endpoint request or return a 404 response
@@ -78,8 +78,8 @@ class HttpServerInterface
     void connected();
     void disconnected();
 
-    virtual void register_endpoint(const std::string &uri,
-                                   HttpMethod method) = 0;
+    virtual void register_endpoint(const std::string &uri, HttpMethod method,
+                                   const endpoint &ep) = 0;
 
     std::map<std::pair<std::string, HttpMethod>, endpoint> endpoints;
     bool is_connected = false;

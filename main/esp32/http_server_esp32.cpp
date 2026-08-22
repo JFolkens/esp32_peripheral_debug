@@ -69,14 +69,14 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
     cpp_req.body = body;
     cpp_req.method = from_httpd_method((httpd_method_t)req->method);
 
-    HttpServerInterface *server =
-        static_cast<HttpServerInterface *>(req->user_ctx);
-    Response cpp_resp = server->handle_request(cpp_req);
+    // Invoke the high-level callback function.
+    // Pass in the request, get back a response.
+    endpoint *endpoint_ = static_cast<endpoint *>(req->user_ctx);
+    Response cpp_resp = (*endpoint_)(cpp_req);
 
     // Publish the returned webpage contents
-    httpd_resp_set_status(
-        req, HttpServerInterface::status_text(cpp_resp.status_code));
-    httpd_resp_set_type(req, cpp_resp.content_type.c_str());
+    // httpd_resp_set_status(
+    //     req, HttpServerInterface::status_text(cpp_resp.status_code));
     httpd_resp_send(req, cpp_resp.body.c_str(), HTTPD_RESP_USE_STRLEN);
 
     return ESP_OK;
@@ -116,20 +116,18 @@ HttpServerEsp32::HttpServerEsp32(std::string wifi_ssid,
     esp_wifi_start();
 }
 
-/** @copydoc HttpServerInterface::register_endpoint */
 void HttpServerEsp32::register_endpoint(const std::string &uri_path,
-                                        HttpMethod method)
+                                        HttpMethod method, const endpoint &ep)
 {
     const httpd_uri_t uri = {
         .uri = uri_path.c_str(),
         .method = to_httpd_method(method),
         .handler = esp32_uri_handler,
-        .user_ctx = static_cast<void *>(this),
+        .user_ctx = const_cast<void *>(static_cast<const void *>(&ep)),
     };
     httpd_register_uri_handler(connection, &uri);
 }
 
-/** @brief Start the ESP-IDF HTTP server and register stored endpoints. */
 void HttpServerEsp32::start_webserver()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
@@ -150,7 +148,6 @@ void HttpServerEsp32::start_webserver()
     connected();
 }
 
-/** @brief Handle Wi-Fi events and update the generic connection lifecycle. */
 void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base,
                                          int32_t event_id, void *event_data)
 {

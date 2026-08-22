@@ -30,8 +30,8 @@ class HttpServerEsp32 : public HttpServerInterface
     /**
      * @brief Register one route with the ESP-IDF HTTP daemon.
      */
-    void register_endpoint(const std::string &uri_path,
-                           HttpMethod method) override;
+    void register_endpoint(const std::string &uri_path, HttpMethod method,
+                           const endpoint &ep) override;
 
     /**
      * @brief Handle Wi-Fi connection, disconnection, and IP events.
