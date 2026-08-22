@@ -11,20 +11,10 @@ class GpioMock : public rover::hal::GpioInterface
 {
    public:
     explicit GpioMock(const rover::hal::GpioDirection &direction_ =
-                          rover::hal::GpioDirection::OUTPUT)
-        : rover::hal::GpioInterface(direction_)
-    {
-    }
+                          rover::hal::GpioDirection::OUTPUT);
 
-    void _set(bool val) override
-    {
-        state = val;
-    }
-
-    bool _get() const override
-    {
-        return state;
-    }
+    void _set(bool val) override;
+    bool _get() const override;
 };
 
 }  // namespace rover::tests::hal

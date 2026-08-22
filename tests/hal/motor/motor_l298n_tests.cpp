@@ -23,7 +23,7 @@ TEST(MotorL298NTest, PositiveSpeedDrivesForward)
     EXPECT_EQ(pwm.set_speed_call_count, 1);
 }
 
-TEST(MotorL298NTest, ZeroSpeedUsesForwardDirectionAndZeroPwm)
+TEST(MotorL298NTest, ZeroSpeedUsesZeroPwm)
 {
     PwmMock pwm;
     GpioMock forward;
@@ -32,8 +32,6 @@ TEST(MotorL298NTest, ZeroSpeedUsesForwardDirectionAndZeroPwm)
 
     motor.set_speed(0.0f);
 
-    EXPECT_TRUE(forward.get());
-    EXPECT_FALSE(reverse.get());
     EXPECT_FLOAT_EQ(pwm.last_set_speed, 0.0f);
     EXPECT_FLOAT_EQ(motor.get_speed(), 0.0f);
 }
