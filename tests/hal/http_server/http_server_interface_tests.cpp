@@ -3,37 +3,15 @@
 #include <utility>
 #include <vector>
 
+#include "http_server_mock.h"
 #include "main/hal/http_server/http_server_interface.h"
 
 namespace rover::tests::hal
 {
 
-class HttpServerMock : public rover::hal::HttpServerInterface
-{
-   public:
-    void mark_connected()
-    {
-        connected();
-    }
-
-    void mark_disconnected()
-    {
-        disconnected();
-    }
-
-    std::vector<std::pair<std::string, rover::hal::HttpMethod>> registrations;
-
-   private:
-    void register_endpoint(const std::string &uri,
-                           rover::hal::HttpMethod method) override
-    {
-        registrations.emplace_back(uri, method);
-    }
-};
-
 TEST(HttpServerInterfaceTest, MissingRouteReturnsNotFound)
 {
-    rover::hal::HttpServerInterface server;
+    HttpServerMock server;
     const rover::hal::Request request{"/missing", "",
                                       rover::hal::HttpMethod::GET};
 
@@ -46,7 +24,7 @@ TEST(HttpServerInterfaceTest, MissingRouteReturnsNotFound)
 
 TEST(HttpServerInterfaceTest, DispatchesMatchingRouteAndPreservesRequest)
 {
-    rover::hal::HttpServerInterface server;
+    HttpServerMock server;
     bool called = false;
     server.add_endpoint("/submit", rover::hal::HttpMethod::POST,
                         [&called](const rover::hal::Request &request) {
@@ -74,7 +52,7 @@ TEST(HttpServerInterfaceTest, DispatchesMatchingRouteAndPreservesRequest)
 
 TEST(HttpServerInterfaceTest, URIAndMethodMustMatchExactly)
 {
-    rover::hal::HttpServerInterface server;
+    HttpServerMock server;
     int get_calls = 0;
     int post_calls = 0;
     server.add_endpoint("/status", rover::hal::HttpMethod::GET,
@@ -106,7 +84,7 @@ TEST(HttpServerInterfaceTest, URIAndMethodMustMatchExactly)
 
 TEST(HttpServerInterfaceTest, DuplicateRouteReplacesPreviousCallback)
 {
-    rover::hal::HttpServerInterface server;
+    HttpServerMock server;
     int old_calls = 0;
     int new_calls = 0;
     server.add_endpoint("/replace", rover::hal::HttpMethod::GET,

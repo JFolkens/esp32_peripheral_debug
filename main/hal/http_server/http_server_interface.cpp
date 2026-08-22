@@ -3,7 +3,6 @@
 namespace rover::hal
 {
 
-/** @copydoc HttpServerInterface::add_endpoint */
 void HttpServerInterface::add_endpoint(std::string uri, HttpMethod method,
                                        const endpoint &e)
 {
@@ -16,7 +15,6 @@ void HttpServerInterface::add_endpoint(std::string uri, HttpMethod method,
     }
 }
 
-/** @copydoc HttpServerInterface::handle_request */
 Response HttpServerInterface::handle_request(const Request &request) const
 {
     auto endpoint_it = endpoints.find({request.uri, request.method});
@@ -45,10 +43,6 @@ void HttpServerInterface::connected()
 void HttpServerInterface::disconnected()
 {
     is_connected = false;
-}
-
-void HttpServerInterface::register_endpoint(const std::string &, HttpMethod)
-{
 }
 
 }  // namespace rover::hal

@@ -15,8 +15,8 @@ namespace rover::hal
 
 namespace
 {
-/** @brief Convert a generic HTTP method to its ESP-IDF equivalent. */
-httpd_method_t to_httpd_method(HttpMethod method)
+
+constexpr httpd_method_t to_httpd_method(HttpMethod method)
 {
     switch (method) {
         case HttpMethod::GET:
@@ -28,32 +28,30 @@ httpd_method_t to_httpd_method(HttpMethod method)
         case HttpMethod::DELETE:
             return HTTP_DELETE;
     }
-
     return HTTP_GET;
 }
 
-/** @brief Convert an HTTP status code to an ESP-IDF status string. */
-const char *status_text(int status_code)
+constexpr HttpMethod from_httpd_method(httpd_method_t method)
 {
-    switch (status_code) {
-        case 200:
-            return "200 OK";
-        case 404:
-            return "404 Not Found";
-        case 405:
-            return "405 Method Not Allowed";
-        case 500:
-            return "500 Internal Server Error";
+    switch (method) {
+        case HTTP_GET:
+            return HttpMethod::GET;
+        case HTTP_POST:
+            return HttpMethod::POST;
+        case HTTP_PUT:
+            return HttpMethod::PUT;
+        case HTTP_DELETE:
+            return HttpMethod::DELETE;
         default:
-            return "500 Internal Server Error";
+            return HttpMethod::GET;
     }
 }
 
 /**
- * @brief Adapt an ESP-IDF request to the generic server interface.
+ * @brief Convert ESP32 callback to high-level Response/Request paradigm.
  *
- * This cannot be a class method because ESP-IDF receives a C function
- * pointer. The server object is recovered from the request context.
+ * Can not be a class method because the function pointer is a parameter
+ * to underlying C library call.
  */
 esp_err_t esp32_uri_handler(httpd_req_t *req)
 {
@@ -69,29 +67,15 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
     Request cpp_req = {};
     cpp_req.uri = req->uri;
     cpp_req.body = body;
-    // Convert ESP32 method to interface method
-    switch (req->method) {
-        case HTTP_GET:
-            cpp_req.method = HttpMethod::GET;
-            break;
-        case HTTP_POST:
-            cpp_req.method = HttpMethod::POST;
-            break;
-        case HTTP_PUT:
-            cpp_req.method = HttpMethod::PUT;
-            break;
-        case HTTP_DELETE:
-            cpp_req.method = HttpMethod::DELETE;
-            break;
-        default:
-            return ESP_ERR_NOT_SUPPORTED;
-    }
+    cpp_req.method = from_httpd_method((httpd_method_t)req->method);
 
-    auto *server = static_cast<HttpServerInterface *>(req->user_ctx);
+    HttpServerInterface *server =
+        static_cast<HttpServerInterface *>(req->user_ctx);
     Response cpp_resp = server->handle_request(cpp_req);
 
     // Publish the returned webpage contents
-    httpd_resp_set_status(req, status_text(cpp_resp.status_code));
+    httpd_resp_set_status(
+        req, HttpServerInterface::status_text(cpp_resp.status_code));
     httpd_resp_set_type(req, cpp_resp.content_type.c_str());
     httpd_resp_send(req, cpp_resp.body.c_str(), HTTPD_RESP_USE_STRLEN);
 

@@ -49,14 +49,37 @@ class HttpServerInterface
      */
     void add_endpoint(std::string uri, HttpMethod method, const endpoint &e);
 
-    /** Dispatch a request or return a 404 response for an unknown route. */
+    /**
+     * @brief Respond to URI endpoint request or return a 404 response
+     * for an unknown endpoint.
+     */
     Response handle_request(const Request &request) const;
+
+    /**
+     * @brief Convert an HTTP status code to an ESP-IDF status string.
+     */
+    static const char *status_text(int status_code)
+    {
+        switch (status_code) {
+            case 200:
+                return "200 OK";
+            case 404:
+                return "404 Not Found";
+            case 405:
+                return "405 Method Not Allowed";
+            case 500:
+                return "500 Internal Server Error";
+            default:
+                return "500 Internal Server Error";
+        }
+    }
 
    protected:
     void connected();
     void disconnected();
 
-    virtual void register_endpoint(const std::string &uri, HttpMethod method);
+    virtual void register_endpoint(const std::string &uri,
+                                   HttpMethod method) = 0;
 
     std::map<std::pair<std::string, HttpMethod>, endpoint> endpoints;
     bool is_connected = false;
