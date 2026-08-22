@@ -1,9 +1,35 @@
 #include <gtest/gtest.h>
 
+#include <utility>
+#include <vector>
+
 #include "main/hal/http_server/http_server_interface.h"
 
 namespace rover::tests::hal
 {
+
+class HttpServerMock : public rover::hal::HttpServerInterface
+{
+   public:
+    void mark_connected()
+    {
+        connected();
+    }
+
+    void mark_disconnected()
+    {
+        disconnected();
+    }
+
+    std::vector<std::pair<std::string, rover::hal::HttpMethod>> registrations;
+
+   private:
+    void register_endpoint(const std::string &uri,
+                           rover::hal::HttpMethod method) override
+    {
+        registrations.emplace_back(uri, method);
+    }
+};
 
 TEST(HttpServerInterfaceTest, MissingRouteReturnsNotFound)
 {
@@ -102,6 +128,99 @@ TEST(HttpServerInterfaceTest, DuplicateRouteReplacesPreviousCallback)
     EXPECT_EQ(old_calls, 0);
     EXPECT_EQ(new_calls, 1);
     EXPECT_EQ(response.body, "new");
+}
+
+TEST(HttpServerInterfaceTest, ReadyTransportRegistersExistingRoutes)
+{
+    HttpServerMock server;
+    server.add_endpoint("/one", rover::hal::HttpMethod::GET,
+                        [](const rover::hal::Request &) {
+                            return rover::hal::Response{};
+                        });
+    server.add_endpoint("/two", rover::hal::HttpMethod::POST,
+                        [](const rover::hal::Request &) {
+                            return rover::hal::Response{};
+                        });
+
+    server.mark_connected();
+
+    ASSERT_EQ(server.registrations.size(), 2);
+    EXPECT_EQ(server.registrations[0],
+              std::make_pair(std::string("/one"), rover::hal::HttpMethod::GET));
+    EXPECT_EQ(
+        server.registrations[1],
+        std::make_pair(std::string("/two"), rover::hal::HttpMethod::POST));
+}
+
+TEST(HttpServerInterfaceTest, NewRouteRegistersWhenTransportIsReady)
+{
+    HttpServerMock server;
+    server.mark_connected();
+
+    server.add_endpoint("/late", rover::hal::HttpMethod::PUT,
+                        [](const rover::hal::Request &) {
+                            return rover::hal::Response{};
+                        });
+
+    ASSERT_EQ(server.registrations.size(), 1);
+    EXPECT_EQ(
+        server.registrations[0],
+        std::make_pair(std::string("/late"), rover::hal::HttpMethod::PUT));
+}
+
+TEST(HttpServerInterfaceTest, ReplacingReadyRouteDoesNotRegisterDuplicate)
+{
+    HttpServerMock server;
+    server.add_endpoint("/replace", rover::hal::HttpMethod::DELETE,
+                        [](const rover::hal::Request &) {
+                            return rover::hal::Response{};
+                        });
+    server.mark_connected();
+
+    server.add_endpoint("/replace", rover::hal::HttpMethod::DELETE,
+                        [](const rover::hal::Request &) {
+                            return rover::hal::Response{};
+                        });
+
+    ASSERT_EQ(server.registrations.size(), 1);
+    EXPECT_EQ(server.registrations[0],
+              std::make_pair(std::string("/replace"),
+                             rover::hal::HttpMethod::DELETE));
+}
+
+TEST(HttpServerInterfaceTest, UnavailableTransportStopsLateRegistration)
+{
+    HttpServerMock server;
+    server.mark_connected();
+    server.mark_disconnected();
+
+    server.add_endpoint("/offline", rover::hal::HttpMethod::GET,
+                        [](const rover::hal::Request &) {
+                            return rover::hal::Response{};
+                        });
+
+    EXPECT_TRUE(server.registrations.empty());
+}
+
+TEST(HttpServerInterfaceTest, ReadyTransportReRegistersRoutesAfterReconnect)
+{
+    HttpServerMock server;
+    server.add_endpoint("/persistent", rover::hal::HttpMethod::GET,
+                        [](const rover::hal::Request &) {
+                            return rover::hal::Response{};
+                        });
+
+    server.mark_connected();
+    server.mark_disconnected();
+    server.mark_connected();
+
+    ASSERT_EQ(server.registrations.size(), 2);
+    EXPECT_EQ(server.registrations[0],
+              std::make_pair(std::string("/persistent"),
+                             rover::hal::HttpMethod::GET));
+    EXPECT_EQ(server.registrations[1],
+              std::make_pair(std::string("/persistent"),
+                             rover::hal::HttpMethod::GET));
 }
 
 }  // namespace rover::tests::hal

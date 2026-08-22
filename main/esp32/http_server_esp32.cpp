@@ -15,6 +15,7 @@ namespace rover::hal
 
 namespace
 {
+/** @brief Convert a generic HTTP method to its ESP-IDF equivalent. */
 httpd_method_t to_httpd_method(HttpMethod method)
 {
     switch (method) {
@@ -31,6 +32,7 @@ httpd_method_t to_httpd_method(HttpMethod method)
     return HTTP_GET;
 }
 
+/** @brief Convert an HTTP status code to an ESP-IDF status string. */
 const char *status_text(int status_code)
 {
     switch (status_code) {
@@ -47,12 +49,11 @@ const char *status_text(int status_code)
     }
 }
 
-/*
- * ESP32 specific wrapper around the high-level Response/Request
- * paradigm.
+/**
+ * @brief Adapt an ESP-IDF request to the generic server interface.
  *
- * Can not be a class method because the function pointer is a parameter
- * to underlying C library call.
+ * This cannot be a class method because ESP-IDF receives a C function
+ * pointer. The server object is recovered from the request context.
  */
 esp_err_t esp32_uri_handler(httpd_req_t *req)
 {
@@ -131,23 +132,10 @@ HttpServerEsp32::HttpServerEsp32(std::string wifi_ssid,
     esp_wifi_start();
 }
 
-void HttpServerEsp32::add_endpoint(std::string uri, HttpMethod method,
-                                   const endpoint &e)
-{
-    HttpServerInterface::add_endpoint(uri, method, e);
-
-    if (is_connected) {
-        // This endpoint was not present when we started the web server.
-        // A new webserver registers all endpoints, but this one is missing
-        register_endpoint(uri, method);
-    }
-}
-
-// ------ Private functions ------ //
+/** @copydoc HttpServerInterface::register_endpoint */
 void HttpServerEsp32::register_endpoint(const std::string &uri_path,
-                                        const HttpMethod &method)
+                                        HttpMethod method)
 {
-    auto &endpoint_ = endpoints.at({uri_path, method});
     const httpd_uri_t uri = {
         .uri = uri_path.c_str(),
         .method = to_httpd_method(method),
@@ -157,6 +145,7 @@ void HttpServerEsp32::register_endpoint(const std::string &uri_path,
     httpd_register_uri_handler(connection, &uri);
 }
 
+/** @brief Start the ESP-IDF HTTP server and register stored endpoints. */
 void HttpServerEsp32::start_webserver()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
@@ -174,12 +163,10 @@ void HttpServerEsp32::start_webserver()
         return;
     }
 
-    for (auto &[uri, endpoint] : endpoints) {
-        auto [uri_path, method] = uri;
-        register_endpoint(uri_path, method);
-    }
+    connected();
 }
 
+/** @brief Handle Wi-Fi events and update the generic connection lifecycle. */
 void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base,
                                          int32_t event_id, void *event_data)
 {
@@ -192,12 +179,11 @@ void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base,
     } else if (event_base == WIFI_EVENT &&
                event_id == WIFI_EVENT_STA_DISCONNECTED) {
         log_info(HTTP_SERVER_TAG, "Disconnected. Retrying connection...");
-        obj->is_connected = false;
+        obj->disconnected();
         esp_wifi_connect();
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
         log_info(HTTP_SERVER_TAG, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
-        obj->is_connected = true;
         obj->start_webserver(); /* Launch the server once IP is obtained */
     }
 }
