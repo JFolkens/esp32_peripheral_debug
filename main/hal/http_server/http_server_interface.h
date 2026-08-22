@@ -39,6 +39,8 @@ class HttpServerInterface
     virtual void add_endpoint(std::string uri, HttpMethod method,
                               const endpoint &e);
 
+    Response handle_request(const Request &request) const;
+
    protected:
     // The purpose of storing endpoints is so that connection can
     // be re-created while server maintains functionality.

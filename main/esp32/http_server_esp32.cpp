@@ -15,6 +15,38 @@ namespace rover::hal
 
 namespace
 {
+httpd_method_t to_httpd_method(HttpMethod method)
+{
+    switch (method) {
+        case HttpMethod::GET:
+            return HTTP_GET;
+        case HttpMethod::POST:
+            return HTTP_POST;
+        case HttpMethod::PUT:
+            return HTTP_PUT;
+        case HttpMethod::DELETE:
+            return HTTP_DELETE;
+    }
+
+    return HTTP_GET;
+}
+
+const char *status_text(int status_code)
+{
+    switch (status_code) {
+        case 200:
+            return "200 OK";
+        case 404:
+            return "404 Not Found";
+        case 405:
+            return "405 Method Not Allowed";
+        case 500:
+            return "500 Internal Server Error";
+        default:
+            return "500 Internal Server Error";
+    }
+}
+
 /*
  * ESP32 specific wrapper around the high-level Response/Request
  * paradigm.
@@ -33,21 +65,33 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
         }
     }
 
-    // Invoke the high-level callback function.
-    // Pass in the request, get back a response.
-    endpoint *endpoint_ = static_cast<endpoint *>(req->user_ctx);
     Request cpp_req = {};
     cpp_req.uri = req->uri;
     cpp_req.body = body;
     // Convert ESP32 method to interface method
-    if (req->method == HTTP_GET) {
-        cpp_req.method = HttpMethod::GET;
-    } else {
-        cpp_req.method = HttpMethod::POST;
+    switch (req->method) {
+        case HTTP_GET:
+            cpp_req.method = HttpMethod::GET;
+            break;
+        case HTTP_POST:
+            cpp_req.method = HttpMethod::POST;
+            break;
+        case HTTP_PUT:
+            cpp_req.method = HttpMethod::PUT;
+            break;
+        case HTTP_DELETE:
+            cpp_req.method = HttpMethod::DELETE;
+            break;
+        default:
+            return ESP_ERR_NOT_SUPPORTED;
     }
-    Response cpp_resp = (*endpoint_)(cpp_req);
+
+    auto *server = static_cast<HttpServerInterface *>(req->user_ctx);
+    Response cpp_resp = server->handle_request(cpp_req);
 
     // Publish the returned webpage contents
+    httpd_resp_set_status(req, status_text(cpp_resp.status_code));
+    httpd_resp_set_type(req, cpp_resp.content_type.c_str());
     httpd_resp_send(req, cpp_resp.body.c_str(), HTTPD_RESP_USE_STRLEN);
 
     return ESP_OK;
@@ -106,9 +150,9 @@ void HttpServerEsp32::register_endpoint(const std::string &uri_path,
     auto &endpoint_ = endpoints.at({uri_path, method});
     const httpd_uri_t uri = {
         .uri = uri_path.c_str(),
-        .method = (method == HttpMethod::GET) ? HTTP_GET : HTTP_POST,
+        .method = to_httpd_method(method),
         .handler = esp32_uri_handler,
-        .user_ctx = static_cast<void *>(&endpoint_),
+        .user_ctx = static_cast<void *>(this),
     };
     httpd_register_uri_handler(connection, &uri);
 }
