@@ -76,14 +76,7 @@ class HttpServerInterface
     }
 
    protected:
-    void connected();
-    void disconnected();
-
-    virtual void register_endpoint(const std::string &uri,
-                                   HttpMethod method) = 0;
-
     std::map<std::pair<std::string, HttpMethod>, endpoint> endpoints;
-    bool is_connected = false;
 };
 
 }  // namespace rover::hal

@@ -118,30 +118,11 @@ HttpServerEsp32::HttpServerEsp32(std::string wifi_ssid,
     esp_wifi_start();
 }
 
-void HttpServerEsp32::register_endpoint(const std::string &uri_path,
-                                        HttpMethod method)
-{
-    // const_cast here is safe as long as esp32_uri_handler
-    // respects the memory at `endpoint`.
-    // `endpoint` is a std::function / function pointer and
-    // is not modified in esp32_uri_handler.
-    const httpd_uri_t uri = {
-        .uri = uri_path.c_str(),
-        .method = to_httpd_method(method),
-        .handler = esp32_uri_handler,
-        .user_ctx = static_cast<void *>(this),
-    };
-    httpd_register_uri_handler(connection, &uri);
-}
-
 void HttpServerEsp32::start_webserver()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.lru_purge_enable = true;
-    // We have a lot of URIs. If this gets to be a problem, re-architect
-    // web peripherals to use single endpoint /name?action
-    // instead of /name/action. Or put all on a single endpoint /do?name_action.
-    config.max_uri_handlers = 32;
+    config.uri_match_fn = httpd_uri_match_wildcard;
 
     log_info(HTTP_SERVER_TAG, "Starting server on port: '%d",
              config.server_port);
@@ -151,7 +132,14 @@ void HttpServerEsp32::start_webserver()
         return;
     }
 
-    connected();
+    // Match all URIs to the callback function
+    const httpd_uri_t uri = {
+        .uri = "/*",
+        .method = HTTP_GET,
+        .handler = esp32_uri_handler,
+        .user_ctx = static_cast<void *>(this),
+    };
+    httpd_register_uri_handler(connection, &uri);
 }
 
 void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base,
@@ -166,7 +154,6 @@ void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base,
     } else if (event_base == WIFI_EVENT &&
                event_id == WIFI_EVENT_STA_DISCONNECTED) {
         log_info(HTTP_SERVER_TAG, "Disconnected. Retrying connection...");
-        obj->disconnected();
         esp_wifi_connect();
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;

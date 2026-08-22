@@ -12,9 +12,7 @@ void HttpServerInterface::add_endpoint(std::string uri, HttpMethod method,
     const bool is_new_endpoint = endpoints.find(key) == endpoints.end();
     endpoints[key] = ep;
 
-    if (is_connected && is_new_endpoint) {
-        register_endpoint(uri, method);
-    } else if (!is_new_endpoint) {
+    if (!is_new_endpoint) {
         // Doesn't print method, but atleast shows warning
         log_warning("HttpServerInterface", "URI already registered: %s", uri);
     }
@@ -34,23 +32,6 @@ Response HttpServerInterface::handle_request(const Request &request) const
     }
 
     return endpoint_it->second(request);
-}
-
-void HttpServerInterface::connected()
-{
-    if (is_connected) {
-        return;
-    }
-
-    is_connected = true;
-    for (const auto &[route, endpoint] : endpoints) {
-        register_endpoint(route.first, route.second);
-    }
-}
-
-void HttpServerInterface::disconnected()
-{
-    is_connected = false;
 }
 
 }  // namespace rover::hal
