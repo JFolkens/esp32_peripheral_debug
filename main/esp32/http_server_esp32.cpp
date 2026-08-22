@@ -55,6 +55,7 @@ constexpr HttpMethod from_httpd_method(httpd_method_t method)
  */
 esp_err_t esp32_uri_handler(httpd_req_t *req)
 {
+    // Convert low-level ESP32 into interface Request object
     std::string body;
     if (req->content_len > 0) {
         std::vector<char> buf(req->content_len + 1);
@@ -69,12 +70,12 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
     cpp_req.body = body;
     cpp_req.method = from_httpd_method((httpd_method_t)req->method);
 
-    // Invoke the high-level callback function.
-    // Pass in the request, get back a response.
-    const endpoint *endpoint_ = static_cast<const endpoint *>(req->user_ctx);
-    Response cpp_resp = (*endpoint_)(cpp_req);
+    // Call high-level interface with Request and get back Response
+    HttpServerInterface *server =
+        static_cast<HttpServerInterface *>(req->user_ctx);
+    Response cpp_resp = server->handle_request(cpp_req);
 
-    // Publish the returned webpage contents
+    // Convert the returned Response into ESP32 HttpServer update
     httpd_resp_set_status(
         req, HttpServerInterface::status_text(cpp_resp.status_code));
     httpd_resp_set_type(req, cpp_resp.content_type.c_str());
@@ -118,7 +119,7 @@ HttpServerEsp32::HttpServerEsp32(std::string wifi_ssid,
 }
 
 void HttpServerEsp32::register_endpoint(const std::string &uri_path,
-                                        HttpMethod method, const endpoint &ep)
+                                        HttpMethod method)
 {
     // const_cast here is safe as long as esp32_uri_handler
     // respects the memory at `endpoint`.
@@ -128,7 +129,7 @@ void HttpServerEsp32::register_endpoint(const std::string &uri_path,
         .uri = uri_path.c_str(),
         .method = to_httpd_method(method),
         .handler = esp32_uri_handler,
-        .user_ctx = const_cast<void *>(static_cast<const void *>(&ep)),
+        .user_ctx = static_cast<void *>(this),
     };
     httpd_register_uri_handler(connection, &uri);
 }

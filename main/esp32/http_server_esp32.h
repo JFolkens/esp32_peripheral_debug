@@ -27,8 +27,8 @@ class HttpServerEsp32 : public HttpServerInterface
      */
     void start_webserver();
 
-    void register_endpoint(const std::string &uri_path, HttpMethod method,
-                           const endpoint &ep) override;
+    void register_endpoint(const std::string &uri_path,
+                           HttpMethod method) override;
 
     /**
      * @brief Handle Wi-Fi connection, disconnection, and IP events.

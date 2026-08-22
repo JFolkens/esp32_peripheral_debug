@@ -17,8 +17,7 @@ class HttpServerMock : public rover::hal::HttpServerInterface
 
    private:
     void register_endpoint(const std::string &uri,
-                           rover::hal::HttpMethod method,
-                           const rover::hal::endpoint &ep) override;
+                           rover::hal::HttpMethod method) override;
 };
 
 }  // namespace rover::tests::hal

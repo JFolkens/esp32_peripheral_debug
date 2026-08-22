@@ -13,7 +13,7 @@ void HttpServerInterface::add_endpoint(std::string uri, HttpMethod method,
     endpoints[key] = ep;
 
     if (is_connected && is_new_endpoint) {
-        register_endpoint(uri, method, ep);
+        register_endpoint(uri, method);
     } else if (!is_new_endpoint) {
         // Doesn't print method, but atleast shows warning
         log_warning("HttpServerInterface", "URI already registered: %s", uri);
@@ -22,7 +22,10 @@ void HttpServerInterface::add_endpoint(std::string uri, HttpMethod method,
 
 Response HttpServerInterface::handle_request(const Request &request) const
 {
-    auto endpoint_it = endpoints.find({request.uri, request.method});
+    log_info("HttpServerInterface", "Handling URI: %s", request.uri.c_str());
+    const size_t query_start = request.uri.find('?');
+    const std::string path = request.uri.substr(0, query_start);
+    auto endpoint_it = endpoints.find({path, request.method});
     if (endpoint_it == endpoints.end()) {
         Response response;
         response.status_code = 404;
@@ -41,7 +44,7 @@ void HttpServerInterface::connected()
 
     is_connected = true;
     for (const auto &[route, endpoint] : endpoints) {
-        register_endpoint(route.first, route.second, endpoint);
+        register_endpoint(route.first, route.second);
     }
 }
 

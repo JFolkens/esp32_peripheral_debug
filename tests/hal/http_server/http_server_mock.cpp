@@ -13,8 +13,7 @@ void HttpServerMock::mark_disconnected()
 }
 
 void HttpServerMock::register_endpoint(const std::string &uri,
-                                       rover::hal::HttpMethod method,
-                                       const rover::hal::endpoint &ep)
+                                       rover::hal::HttpMethod method)
 {
     registrations.emplace_back(uri, method);
 }

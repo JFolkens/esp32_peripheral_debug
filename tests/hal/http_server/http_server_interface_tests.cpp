@@ -50,6 +50,27 @@ TEST(HttpServerInterfaceTest, DispatchesMatchingRouteAndPreservesRequest)
     EXPECT_EQ(response.body, "created");
 }
 
+TEST(HttpServerInterfaceTest, DispatchesRouteWithQueryString)
+{
+    HttpServerMock server;
+    bool called = false;
+    server.add_endpoint("/m_speed/update", rover::hal::HttpMethod::GET,
+                        [&called](const rover::hal::Request &request) {
+                            called = true;
+                            EXPECT_EQ(request.uri, "/m_speed/update?value=47");
+
+                            rover::hal::Response response;
+                            response.body = "updated";
+                            return response;
+                        });
+
+    const rover::hal::Response response = server.handle_request(
+        {"/m_speed/update?value=47", "", rover::hal::HttpMethod::GET});
+
+    EXPECT_TRUE(called);
+    EXPECT_EQ(response.body, "updated");
+}
+
 TEST(HttpServerInterfaceTest, URIAndMethodMustMatchExactly)
 {
     HttpServerMock server;
