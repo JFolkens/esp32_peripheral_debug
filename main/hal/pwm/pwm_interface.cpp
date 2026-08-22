@@ -5,17 +5,21 @@ namespace rover::hal
 
 void PwmInterface::set_speed(float speed)
 {
-    // Store state and call child class implementation
     is_on_ = true;
 
     if (speed <= 0.01f) {
-        is_on_ = false;
+        // Coerce small values to zero
+        turn_off();
+    } else {
+        // Store state and call child class implementation
+        speed_ = speed;
+        set_speed_(speed);
     }
-    set_speed_(speed);
 }
 
 void PwmInterface::turn_off()
 {
+    speed_ = 0;
     is_on_ = false;
     turn_off_();
 }
