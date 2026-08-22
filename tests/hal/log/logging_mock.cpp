@@ -19,6 +19,35 @@ void log(Message::Level level, const char *tag, const char *format,
     g_messages.push_back({level, tag, buffer});
 }
 
+void clear()
+{
+    g_messages.clear();
+}
+
+const std::vector<Message> &messages()
+{
+    return g_messages;
+}
+
+const Message *lastMessage()
+{
+    if (g_messages.empty()) {
+        return nullptr;
+    }
+
+    return &g_messages.back();
+}
+}  // namespace rover::tests::hal
+
+using namespace rover::tests::hal;
+/**
+ * Unit test implementations of logging functions. Must be in rover::hal
+ * because that is where function definitions live. Unit tests can use
+ * std::cout; embedded devices have their own implementations.
+ */
+namespace rover::hal
+{
+
 void log_error(const char *tag, const char *message, ...)
 {
     va_list args;
@@ -49,22 +78,4 @@ void log_info(const char *tag, const char *message, ...)
     va_end(args);
 }
 
-void clear()
-{
-    g_messages.clear();
-}
-
-const std::vector<Message> &messages()
-{
-    return g_messages;
-}
-
-const Message *lastMessage()
-{
-    if (g_messages.empty()) {
-        return nullptr;
-    }
-
-    return &g_messages.back();
-}
-}  // namespace rover::tests::hal
+}  // namespace rover::hal

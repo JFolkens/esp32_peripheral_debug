@@ -1,17 +1,22 @@
 #include "http_server_interface.h"
 
+#include "../log/logging.h"
+
 namespace rover::hal
 {
 
 void HttpServerInterface::add_endpoint(std::string uri, HttpMethod method,
                                        const endpoint &ep)
 {
-    const auto key = std::make_pair(uri, method);
+    const std::pair<std::string, HttpMethod> key = std::make_pair(uri, method);
     const bool is_new_endpoint = endpoints.find(key) == endpoints.end();
     endpoints[key] = ep;
 
     if (is_connected && is_new_endpoint) {
         register_endpoint(uri, method, ep);
+    } else if (!is_new_endpoint) {
+        // Doesn't print method, but atleast shows warning
+        log_warning("HttpServerInterface", "URI already registered: %s", uri);
     }
 }
 

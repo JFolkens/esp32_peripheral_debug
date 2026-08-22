@@ -71,12 +71,13 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
 
     // Invoke the high-level callback function.
     // Pass in the request, get back a response.
-    endpoint *endpoint_ = static_cast<endpoint *>(req->user_ctx);
+    const endpoint *endpoint_ = static_cast<const endpoint *>(req->user_ctx);
     Response cpp_resp = (*endpoint_)(cpp_req);
 
     // Publish the returned webpage contents
-    // httpd_resp_set_status(
-    //     req, HttpServerInterface::status_text(cpp_resp.status_code));
+    httpd_resp_set_status(
+        req, HttpServerInterface::status_text(cpp_resp.status_code));
+    httpd_resp_set_type(req, cpp_resp.content_type.c_str());
     httpd_resp_send(req, cpp_resp.body.c_str(), HTTPD_RESP_USE_STRLEN);
 
     return ESP_OK;
@@ -119,6 +120,10 @@ HttpServerEsp32::HttpServerEsp32(std::string wifi_ssid,
 void HttpServerEsp32::register_endpoint(const std::string &uri_path,
                                         HttpMethod method, const endpoint &ep)
 {
+    // const_cast here is safe as long as esp32_uri_handler
+    // respects the memory at `endpoint`.
+    // `endpoint` is a std::function / function pointer and
+    // is not modified in esp32_uri_handler.
     const httpd_uri_t uri = {
         .uri = uri_path.c_str(),
         .method = to_httpd_method(method),

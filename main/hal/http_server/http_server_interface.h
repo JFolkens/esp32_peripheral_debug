@@ -15,7 +15,7 @@ enum class HttpMethod {
     DELETE
 };
 
-/** @brief A request passed from an HTTP transport to an endpoint. */
+/** @brief Request from HTTP server. Parameter to endpoint callback. */
 struct Request
 {
     std::string uri;
@@ -23,11 +23,12 @@ struct Request
     HttpMethod method;
 };
 
-/** @brief The response returned by an endpoint. */
+/** @brief Response to HTTP server request. Return value for endpoint callback.
+ */
 struct Response
 {
     int status_code = 200;
-    std::string content_type = "text/plain";
+    std::string content_type = "text/html";
     std::string body;
 };
 

@@ -12,7 +12,7 @@ namespace rover::hal
 {
 
 /**
- * @brief ESP32 Wi-Fi and HTTP implementation for HttpServerInterface.
+ * @brief ESP32 implementation for HttpServerInterface.
  */
 class HttpServerEsp32 : public HttpServerInterface
 {
@@ -23,18 +23,18 @@ class HttpServerEsp32 : public HttpServerInterface
     httpd_handle_t connection;
 
     /**
-     * @brief Start the HTTP daemon after an IP address is acquired.
+     * @brief Launch webpage once IP address is acquired.
      */
     void start_webserver();
 
-    /**
-     * @brief Register one route with the ESP-IDF HTTP daemon.
-     */
     void register_endpoint(const std::string &uri_path, HttpMethod method,
                            const endpoint &ep) override;
 
     /**
      * @brief Handle Wi-Fi connection, disconnection, and IP events.
+     *
+     * @note This function is static because it must match the C interface
+     * and can not use Objects. Parameter `event_data` contains pointer `this`.
      */
     static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                    int32_t event_id, void *event_data);
