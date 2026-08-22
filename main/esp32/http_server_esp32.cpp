@@ -126,7 +126,7 @@ void HttpServerEsp32::start_webserver()
              config.server_port);
 
     if (httpd_start(&connection, &config) != ESP_OK) {
-        ESP_LOGI(HTTP_SERVER_TAG, "Error starting server!");
+        log_info(HTTP_SERVER_TAG, "Error starting server!");
         return;
     }
 
@@ -147,12 +147,12 @@ void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base,
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT &&
                event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        ESP_LOGI(HTTP_SERVER_TAG, "Disconnected. Retrying connection...");
+        log_info(HTTP_SERVER_TAG, "Disconnected. Retrying connection...");
         obj->is_connected = false;
         esp_wifi_connect();
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-        ESP_LOGI(HTTP_SERVER_TAG, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
+        log_info(HTTP_SERVER_TAG, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
         obj->is_connected = true;
         obj->start_webserver(); /* Launch the server once IP is obtained */
     }

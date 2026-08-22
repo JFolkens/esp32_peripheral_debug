@@ -1,8 +1,6 @@
 #include "pwm_esp32.h"
 
-extern "C" {
-#include "esp_log.h"
-}
+#include "../hal/log/logging.h"
 
 static const char *PWM_TAG = "PWM";
 
@@ -24,7 +22,7 @@ PwmEsp32::PwmEsp32(gpio_num_t pin_, ledc_channel_t ch_, ledc_timer_t timer_,
     };
     esp_err_t err = ledc_timer_config(&ledc_timer);
     if (err != ESP_OK) {
-        ESP_LOGE(PWM_TAG, "Error acquiring timer for pwm");
+        log_error(PWM_TAG, "Error acquiring timer for pwm");
         return;
     }
 
@@ -47,28 +45,28 @@ PwmEsp32::PwmEsp32(gpio_num_t pin_, ledc_channel_t ch_, ledc_timer_t timer_,
 
     err = ledc_channel_config(&ledc_channel);
     if (err != ESP_OK) {
-        ESP_LOGE(PWM_TAG, "Error configuring pwm controller for gpio pin");
+        log_error(PWM_TAG, "Error configuring pwm controller for gpio pin");
         return;
     }
 }
 
 void PwmEsp32::set_speed_(float speed)
 {
-    ESP_LOGI("PwmEsp32", "Setting speed: %f", speed);
+    log_info("PwmEsp32", "Setting speed: %f", speed);
 
     uint32_t duty = static_cast<uint32_t>((speed / 100.0f) * max_duty);
 
     esp_err_t err = ledc_set_duty(LEDC_LOW_SPEED_MODE, ch, duty);
 
     if (err != ESP_OK) {
-        ESP_LOGE(PWM_TAG, "Failed to set PWM duty cycle");
+        log_error(PWM_TAG, "Failed to set PWM duty cycle");
         return;
     }
 
     ledc_update_duty(LEDC_LOW_SPEED_MODE, ch);
 
     if (err != ESP_OK) {
-        ESP_LOGE(PWM_TAG, "Failed to set PWM duty cycle");
+        log_error(PWM_TAG, "Failed to set PWM duty cycle");
         return;
     }
 }

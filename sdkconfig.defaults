@@ -13,8 +13,13 @@ CONFIG_BT_ENABLED=n
 
 # Website transmits plaintext. We don't handle any passwords etc,
 # and this gets rid of the bulky crypto libraries
+# TODO: Crypto still being included, figure out why
 CONFIG_ESP_HTTP_CLIENT_ENABLE_HTTPS=n
 
 # I don't know why the default is including ethernet
 # There is no ethernet port; disable
 CONFIG_ETH_ENABLED=n
+
+# Logging V2 has additional capability that we use (esp_log_va).
+# It is smaller in flash size and more flexible, but larger in stack.
+CONFIG_LOG_VERSION_2=y

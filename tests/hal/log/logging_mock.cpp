@@ -29,7 +29,7 @@ void log_error(const char *tag, const char *message, ...)
     va_end(args);
 }
 
-void warning(const char *tag, const char *message, ...)
+void log_warning(const char *tag, const char *message, ...)
 {
     va_list args;
     va_start(args, message);
@@ -39,7 +39,7 @@ void warning(const char *tag, const char *message, ...)
     va_end(args);
 }
 
-void info(const char *tag, const char *message, ...)
+void log_info(const char *tag, const char *message, ...)
 {
     va_list args;
     va_start(args, message);
