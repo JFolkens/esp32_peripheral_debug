@@ -72,9 +72,28 @@ void app_main()
     green_led = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_26);
     red_led = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_27);
 
-    motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_5);
-    motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_18);
-    motor_speed = new PwmEsp32(GPIO_NUM_19, LEDC_CHANNEL_0, LEDC_TIMER_0);
+    /* --- Front left ----*/
+    // motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_5);
+    // motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_18);
+    // motor_speed = new PwmEsp32(GPIO_NUM_19, LEDC_CHANNEL_0, LEDC_TIMER_0);
+
+    /* --- Back right ----*/
+    // motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_27);
+    // motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_14);
+    // motor_speed = new PwmEsp32(GPIO_NUM_12, LEDC_CHANNEL_0, LEDC_TIMER_0);
+
+    // /* --- Front right (Broken) ----*/
+    // motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_4);
+    // // GPIO 2 is also Blue on-board LED
+    // motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_2);
+    // motor_speed = new PwmEsp32(GPIO_NUM_15, LEDC_CHANNEL_0,
+    // LEDC_TIMER_0);
+
+    /* --- Back left (Broken) ----*/
+    // GPIO 35 is input only
+    motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_33);
+    motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_25);
+    motor_speed = new PwmEsp32(GPIO_NUM_32, LEDC_CHANNEL_0, LEDC_TIMER_0);
 
     // ---- Html rendering application ----
     app = new rover::web::DeviceWebApp(*debug_server);

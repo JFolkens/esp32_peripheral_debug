@@ -52,6 +52,20 @@ TEST(MotorL298NTest, NegativeSpeedDrivesReverseWithPositivePwm)
     EXPECT_EQ(pwm.set_speed_call_count, 1);
 }
 
+TEST(MOTORL298NTest, StopSetsHardBraking)
+{
+    PwmMock pwm;
+    GpioMock forward;
+    GpioMock reverse;
+    rover::hal::MotorL298N motor(pwm, forward, reverse);
+
+    motor.stop();
+    // Functionally, it does not matter if "stop" is implemented
+    // as "both high" or "both low". Setting forward == backward
+    // is hard braking for the L298N.
+    EXPECT_EQ(forward.get(), reverse.get());
+}
+
 TEST(MotorL298NTest, RepeatedCommandsUpdateDirectionAndPwm)
 {
     PwmMock pwm;
