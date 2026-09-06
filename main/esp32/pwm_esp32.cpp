@@ -73,6 +73,8 @@ void PwmEsp32::set_speed_(float speed)
 
 void PwmEsp32::turn_off_()
 {
+    log_info("PwmEsp32", "Turning off");
+
     ledc_stop(LEDC_LOW_SPEED_MODE, ch, 0);
 }
 

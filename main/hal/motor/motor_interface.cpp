@@ -15,4 +15,11 @@ float MotorInterface::get_speed() const
     return speed_;
 }
 
+void MotorInterface::stop()
+{
+    // Default implementation is `set_speed(0)`.
+    // Some motors have a more aggressive "stop" functionality.
+    set_speed(0);
+}
+
 }  // namespace rover::hal

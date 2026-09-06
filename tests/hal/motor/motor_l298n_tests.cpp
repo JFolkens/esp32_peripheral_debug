@@ -7,74 +7,80 @@
 namespace rover::tests::hal
 {
 
-TEST(MotorL298NTest, PositiveSpeedDrivesForward)
+class MotorL298NTest : public ::testing::Test
 {
-    PwmMock pwm;
-    GpioMock forward;
-    GpioMock reverse;
-    rover::hal::MotorL298N motor(pwm, forward, reverse);
+   protected:
+    std::unique_ptr<PwmMock> pwm;
+    std::unique_ptr<GpioMock> forward;
+    std::unique_ptr<GpioMock> reverse;
+    std::unique_ptr<rover::hal::MotorInterface> motor;
 
-    motor.set_speed(0.5f);
+    void SetUp() override
+    {
+        pwm = std::make_unique<PwmMock>();
+        forward = std::make_unique<GpioMock>();
+        reverse = std::make_unique<GpioMock>();
+        motor = std::make_unique<rover::hal::MotorL298N>(*pwm, *forward, *reverse);
+    }
+};
 
-    EXPECT_TRUE(forward.get());
-    EXPECT_FALSE(reverse.get());
-    EXPECT_FLOAT_EQ(pwm.last_set_speed, 50.0f);
-    EXPECT_FLOAT_EQ(motor.get_speed(), 0.5f);
-    EXPECT_EQ(pwm.set_speed_call_count, 1);
+TEST_F(MotorL298NTest, PositiveSpeedDrivesForward)
+{
+    motor->set_speed(0.5f);
+
+    EXPECT_TRUE(forward->get());
+    EXPECT_FALSE(reverse->get());
+    EXPECT_FLOAT_EQ(pwm->last_set_speed, 50.0f);
+    EXPECT_FLOAT_EQ(motor->get_speed(), 0.5f);
+    EXPECT_EQ(pwm->set_speed_call_count, 1);
 }
 
-TEST(MotorL298NTest, ZeroSpeedUsesZeroPwm)
+TEST_F(MotorL298NTest, ZeroSpeedUsesZeroPwm)
 {
-    PwmMock pwm;
-    GpioMock forward;
-    GpioMock reverse;
-    rover::hal::MotorL298N motor(pwm, forward, reverse);
+    motor->set_speed(0.0f);
 
-    motor.set_speed(0.0f);
-
-    EXPECT_FLOAT_EQ(pwm.last_set_speed, 0.0f);
-    EXPECT_FLOAT_EQ(motor.get_speed(), 0.0f);
+    EXPECT_FLOAT_EQ(pwm->last_set_speed, 0.0f);
+    EXPECT_FLOAT_EQ(motor->get_speed(), 0.0f);
 }
 
-TEST(MotorL298NTest, NegativeSpeedDrivesReverseWithPositivePwm)
+TEST_F(MotorL298NTest, NegativeSpeedDrivesReverseWithPositivePwm)
 {
-    PwmMock pwm;
-    GpioMock forward;
-    GpioMock reverse;
-    rover::hal::MotorL298N motor(pwm, forward, reverse);
+    motor->set_speed(-0.25f);
 
-    motor.set_speed(-0.25f);
-
-    EXPECT_FALSE(forward.get());
-    EXPECT_TRUE(reverse.get());
-    EXPECT_FLOAT_EQ(pwm.last_set_speed, 25.0f);
-    EXPECT_FLOAT_EQ(motor.get_speed(), -0.25f);
-    EXPECT_EQ(pwm.set_speed_call_count, 1);
+    EXPECT_FALSE(forward->get());
+    EXPECT_TRUE(reverse->get());
+    EXPECT_FLOAT_EQ(pwm->last_set_speed, 25.0f);
+    EXPECT_FLOAT_EQ(motor->get_speed(), -0.25f);
+    EXPECT_EQ(pwm->set_speed_call_count, 1);
 }
 
-TEST(MotorL298NTest, RepeatedCommandsUpdateDirectionAndPwm)
+TEST_F(MotorL298NTest, StopSetsHardBraking)
 {
-    PwmMock pwm;
-    GpioMock forward;
-    GpioMock reverse;
-    rover::hal::MotorL298N motor(pwm, forward, reverse);
+    motor->stop();
+    // Functionally, it does not matter if "stop" is implemented
+    // as "both high" or "both low". Setting forward == backward
+    // is hard braking for the L298N.
+    EXPECT_EQ(forward->get(), reverse->get());
+}
 
-    motor.set_speed(1.0f);
-    EXPECT_TRUE(forward.get());
-    EXPECT_FALSE(reverse.get());
-    EXPECT_FLOAT_EQ(pwm.last_set_speed, 100.0f);
+TEST_F(MotorL298NTest, RepeatedCommandsUpdateDirectionAndPwm)
+{
+    motor->set_speed(1.0f);
+    EXPECT_TRUE(forward->get());
+    EXPECT_FALSE(reverse->get());
+    EXPECT_FLOAT_EQ(pwm->last_set_speed, 100.0f);
 
-    motor.set_speed(-1.0f);
-    EXPECT_FALSE(forward.get());
-    EXPECT_TRUE(reverse.get());
-    EXPECT_FLOAT_EQ(pwm.last_set_speed, 100.0f);
+    motor->set_speed(-1.0f);
+    EXPECT_FALSE(forward->get());
+    EXPECT_TRUE(reverse->get());
+    EXPECT_FLOAT_EQ(pwm->last_set_speed, 100.0f);
 
-    motor.set_speed(0.25f);
-    EXPECT_TRUE(forward.get());
-    EXPECT_FALSE(reverse.get());
-    EXPECT_FLOAT_EQ(pwm.last_set_speed, 25.0f);
-    EXPECT_EQ(pwm.set_speed_call_count, 3);
-    EXPECT_FLOAT_EQ(motor.get_speed(), 0.25f);
+    motor->set_speed(0.25f);
+    EXPECT_TRUE(forward->get());
+    EXPECT_FALSE(reverse->get());
+    EXPECT_FLOAT_EQ(pwm->last_set_speed, 25.0f);
+    EXPECT_EQ(pwm->set_speed_call_count, 3);
+    EXPECT_FLOAT_EQ(motor->get_speed(), 0.25f);
 }
 
 }  // namespace rover::tests::hal

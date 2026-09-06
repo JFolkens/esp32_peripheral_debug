@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include "../../hal/log/logging.h"
+
 namespace rover::web
 {
 
@@ -13,13 +15,13 @@ PwmWeb::PwmWeb(const std::string &name_, rover::hal::PwmInterface *pwm_)
 
 std::string PwmWeb::html_state() const
 {
-    // PWM could be disabled or have a speed.
+    // PWM could be disabled or ha a speed.
     bool is_on = pwm->is_on();
     float speed = pwm->get_speed();
 
     // Technically PWM could be on with a speed of zero.
-    // That is too complex for webpage; setting to zero is
-    // equivalent of turning off the PWM.
+    // That is too complex for webpage; setting to zero
+    // is equivalent of turning off the PWM.
     is_on = is_on || (speed == 0);
 
     if (!is_on) {
@@ -36,7 +38,8 @@ std::string PwmWeb::html_state() const
 
 std::string PwmWeb::html_control() const
 {
-    // bool is_on = pwm->is_on();  // TODO: Color based on is_on
+    // bool is_on = pwm->is_on();
+    // // TODO: Color based on is_on
     float speed = pwm->get_speed();
 
     std::string slider_id = name + "_slider";
@@ -51,6 +54,7 @@ std::string PwmWeb::html_control() const
        << "max=\"100\" value=\"" << speed << "\">\n"
        << "<span id=\"" << display_id << "\">" << speed << "</span>\n"
        << "<script>\n"
+       << "(() => {\n"
        << "const slider = document.getElementById('" << slider_id << "');\n"
        << "const display = document.getElementById('" << display_id << "');\n"
        << "\n"
@@ -79,6 +83,7 @@ std::string PwmWeb::html_control() const
        << "    }\n"
        << "    sendValue(e.target.value);\n"
        << "});\n"
+       << "})();\n"
        << "</script>\n";
 
     return ss.str();
@@ -87,8 +92,7 @@ std::string PwmWeb::html_control() const
 std::vector<EndpointDefinition> PwmWeb::endpoints() const
 {
     std::vector<EndpointDefinition> defs;
-    defs.push_back(
-        {"/" + name + "/update", rover::hal::HttpMethod::GET, "update"});
+    defs.push_back({"/" + name + "/update", rover::hal::HttpMethod::GET, "update"});
     return defs;
 }
 
@@ -98,19 +102,21 @@ void PwmWeb::handle_action(const rover::hal::Request &action)
     size_t num_start = action.uri.find(param);
 
     if (num_start == std::string::npos) {
-        // TODO: Throw error. Should never reach here (famous last words)
+        rover::hal::log_error("PwmWeb", "Malformed URI request. Must contain '?value=': %s",
+                              action.uri.c_str());
+        return;
     }
 
     std::string subs = action.uri.substr(num_start + param.size());
     float speed = std::stof(subs);
 
     // 5% is low enough that user likely meant to drag slider to zero.
-    // If this was an LED dimmer, it would appear "off" at 5%, but
-    // continue to drain battery. So we coerce user value to 0.
+    // If this was an LED dimmer, it would appear "off" at 5%,
+    // but continue to drain battery. So we coerce user value to 0.
     if (speed <= 5.0f) {
         pwm->turn_off();
     } else {
         pwm->set_speed(speed);
     }
 }
-}  // namespace rover::web
+}  // namespace  rover::web

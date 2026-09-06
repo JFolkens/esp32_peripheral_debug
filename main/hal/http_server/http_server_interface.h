@@ -7,7 +7,7 @@
 namespace rover::hal
 {
 
-// ---- Helper data types for interacting with HttpServer
+/** @brief HTTP methods supported by the server interface. */
 enum class HttpMethod {
     GET,
     POST,
@@ -15,6 +15,7 @@ enum class HttpMethod {
     DELETE
 };
 
+/** @brief Request from HTTP server. Parameter to endpoint callback. */
 struct Request
 {
     std::string uri;
@@ -22,26 +23,59 @@ struct Request
     HttpMethod method;
 };
 
+/** @brief Response to HTTP server request. Return value for endpoint callback.
+ */
 struct Response
 {
     int status_code = 200;
-    std::string content_type = "text/plain";
+    std::string content_type = "text/html";
     std::string body;
 };
 
 using endpoint = std::function<Response(const Request &)>;
 
+/**
+ * @brief Interface for HTTP Server.
+ *
+ * The interface owns endpoint callbacks and coordinates their registration
+ * upon connection or disconnection event.
+ */
 class HttpServerInterface
 {
    public:
     virtual ~HttpServerInterface() = default;
 
-    virtual void add_endpoint(std::string uri, HttpMethod method,
-                              const endpoint &e);
+    /**
+     * @brief Add a URI endpoint with associated callback.
+     */
+    void add_endpoint(std::string uri, HttpMethod method, const endpoint &ep);
+
+    /**
+     * @brief Respond to URI endpoint request or return a 404 response
+     * for an unknown endpoint.
+     */
+    Response handle_request(const Request &request) const;
+
+    /**
+     * @brief Convert an HTTP status code to an ESP-IDF status string.
+     */
+    static const char *status_text(int status_code)
+    {
+        switch (status_code) {
+            case 200:
+                return "200 OK";
+            case 404:
+                return "404 Not Found";
+            case 405:
+                return "405 Method Not Allowed";
+            case 500:
+                return "500 Internal Server Error";
+            default:
+                return "500 Internal Server Error";
+        }
+    }
 
    protected:
-    // The purpose of storing endpoints is so that connection can
-    // be re-created while server maintains functionality.
     std::map<std::pair<std::string, HttpMethod>, endpoint> endpoints;
 };
 

@@ -30,6 +30,14 @@ class MotorL298N : public MotorInterface
                GpioInterface &reverse);
     ~MotorL298N() = default;
 
+    /**
+     * @brief Stop the motor.
+     *
+     * `set_speed(0)` for L298N is a coasting stop. `stop()` is a "braking"
+     * function.
+     */
+    void stop() override;
+
    protected:
     void set_speed_(float speed) override;
 

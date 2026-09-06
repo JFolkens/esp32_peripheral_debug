@@ -3,16 +3,14 @@
 namespace rover::web
 {
 
-DeviceWebApp::DeviceWebApp(rover::hal::HttpServerInterface &server_)
-    : server(server_)
+DeviceWebApp::DeviceWebApp(rover::hal::HttpServerInterface &server_) : server(server_)
 {
     // Endpoint for landing page, "/"
-    server.add_endpoint("/", rover::hal::HttpMethod::GET,
-                        [this](const rover::hal::Request &req) {
-                            rover::hal::Response response = {};
-                            response.body = render_page();
-                            return response;
-                        });
+    server.add_endpoint("/", rover::hal::HttpMethod::GET, [this](const rover::hal::Request &req) {
+        rover::hal::Response response = {};
+        response.body = render_page();
+        return response;
+    });
 }
 
 void DeviceWebApp::add_peripheral(PeripheralInterface *peripheral)
@@ -33,14 +31,15 @@ void DeviceWebApp::add_peripheral(PeripheralInterface *peripheral)
 std::string DeviceWebApp::render_page() const
 {
     std::string html;
-    html += R"raw(<!DOCTYPE html>
+    html +=
+        R"raw(<!DOCTYPE html>
     <html>
         <head>
             <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
             <style>
                 html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center; }
                 body { margin: 20px; }
-                .button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer; }
+                .button { background-color: #4CAF50; border: none; color: white; padding: 16px 16px; text-decoration: none; font-size: 24px; margin: 2px; cursor: pointer; }
                 .button-off { background-color: #555555; }
                 .card { margin: 20px auto; padding: 10px; border: 1px solid #ddd; border-radius: 8px; max-width: 640px; }
             </style>
@@ -53,7 +52,8 @@ std::string DeviceWebApp::render_page() const
         html += peripheral->render_html();
     }
 
-    html += R"raw(
+    html +=
+        R"raw(
         </body>
     </html>
     )raw";
@@ -61,4 +61,4 @@ std::string DeviceWebApp::render_page() const
     return html;
 }
 
-}  // namespace rover::web
+}  // namespace  rover::web

@@ -12,6 +12,15 @@ MotorL298N::MotorL298N(PwmInterface &speed_control, GpioInterface &forward,
     // Empty
 }
 
+void MotorL298N::stop()
+{
+    // Setting PWM to zero will coast.
+    // Setting _forward and _reverse to the same value will
+    // "hard brake" the motor.
+    _forward.set(false);
+    _reverse.set(false);
+}
+
 void MotorL298N::set_speed_(float speed)
 {
     if (speed >= 0.0f) {

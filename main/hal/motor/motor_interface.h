@@ -30,6 +30,13 @@ class MotorInterface
      */
     float get_speed() const;
 
+    /**
+     * @brief Stop the motor.
+     * This can be more aggressive than `set_speed(0)` which is
+     * typically a coasting stop.
+     */
+    virtual void stop();
+
    protected:
     virtual void set_speed_(float speed) = 0;
     float speed_;

@@ -11,22 +11,28 @@ extern "C" {
 namespace rover::hal
 {
 
+/**
+ * @brief ESP32 implementation for HttpServerInterface.
+ */
 class HttpServerEsp32 : public HttpServerInterface
 {
    public:
     HttpServerEsp32(std::string wifi_ssid, std::string wifi_password);
 
-    void add_endpoint(std::string uri, HttpMethod method,
-                      const endpoint &e) override;
-
    private:
     httpd_handle_t connection;
-    bool is_connected = false;
 
+    /**
+     * @brief Launch webpage once IP address is acquired.
+     */
     void start_webserver();
-    void register_endpoint(const std::string &uri_path,
-                           const HttpMethod &method);
 
+    /**
+     * @brief Handle Wi-Fi connection, disconnection, and IP events.
+     *
+     * @note This function is static because it must match the C interface
+     * and can not use Objects. Parameter `event_data` contains pointer `this`.
+     */
     static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                    int32_t event_id, void *event_data);
 };
