@@ -34,6 +34,11 @@ class PeripheralInterface
     virtual std::string html_state() const = 0;
 
     /**
+     * @brief Apply an update and render the resulting state.
+     */
+    std::string update_and_render_state(const std::map<std::string, std::string> &parameters);
+
+    /**
      * @brief Respond to a web user interaction.
      */
     virtual void handle_update(const std::map<std::string, std::string> &parameters) = 0;

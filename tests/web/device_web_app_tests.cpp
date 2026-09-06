@@ -22,8 +22,8 @@ TEST(DeviceWebAppTest, RegistersStateAndUpdateRoutes)
     const rover::hal::Response update =
         server.handle_request("/test/update", "value=updated", rover::hal::HttpMethod::POST);
     EXPECT_EQ(update.status_code, 200);
-    EXPECT_EQ(update.content_type, "application/json");
-    EXPECT_EQ(update.body, "{\"ok\":true}");
+    EXPECT_EQ(update.content_type, "text/html");
+    EXPECT_EQ(update.body, "value: updated");
     EXPECT_EQ(peripheral.value, "updated");
 
     const rover::hal::Response page = server.handle_request("/", "", rover::hal::HttpMethod::GET);

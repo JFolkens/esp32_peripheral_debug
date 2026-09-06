@@ -15,6 +15,13 @@ std::string PeripheralInterface::id() const
     return name;
 }
 
+std::string PeripheralInterface::update_and_render_state(
+    const std::map<std::string, std::string> &parameters)
+{
+    handle_update(parameters);
+    return html_state();
+}
+
 std::string PeripheralInterface::html_state_and_control()
 {
     // Every peripheral gets a box with their name at the top.

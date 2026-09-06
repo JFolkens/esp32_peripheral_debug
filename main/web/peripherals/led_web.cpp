@@ -38,11 +38,11 @@ std::string LedWeb::html_control() const
        << "const button = document.getElementById('" << name << "_button');\n"
        << "button.addEventListener('click', async () => {\n"
        << "    const action = button.dataset.action;\n"
-       << "    await fetch('/" << name << "/update?action=' + action, { method: 'POST' });\n"
-       << "    const response = await fetch('/" << name << "/state');\n"
+       << "    const response = await fetch('/" << name
+       << "/update?action=' + action, { method: 'POST' });\n"
        << "    if (response.ok) {\n"
-       << "        document.getElementById('" << name
-       << "_state').innerHTML = await response.text();\n"
+       << "        document.getElementById('" << name << "_state').innerHTML =\n"
+       << "            await response.text();\n"
        << "    }\n"
        << "    const isOn = action === 'on';\n"
        << "    button.dataset.action = isOn ? 'off' : 'on';\n"

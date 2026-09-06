@@ -33,10 +33,9 @@ void DeviceWebApp::add_peripheral(PeripheralInterface *peripheral)
     server.add_endpoint(state_uri, rover::hal::HttpMethod::GET, state_cb);
 
     const auto update_cb = [peripheral](const rover::hal::Request &request) {
-        peripheral->handle_update(request.parameters);
         rover::hal::Response response;
-        response.content_type = "application/json";
-        response.body = "{\"ok\":true}";
+        response.content_type = "text/html";
+        response.body = peripheral->update_and_render_state(request.parameters);
         return response;
     };
     const std::string update_uri = "/" + peripheral->id() + "/update";

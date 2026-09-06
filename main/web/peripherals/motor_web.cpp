@@ -70,11 +70,10 @@ std::string MotorWeb::html_control() const
        << "}\n"
        << "\n"
        << "async function sendValue(direction, value) {\n"
-       << "    await fetch(\n"
+       << "    const response = await fetch(\n"
        << "        `/" << name
        << "/update?mode=${encodeURIComponent(direction)}&speed=${encodeURIComponent(value)}`,\n"
        << "          { method: 'POST' });\n"
-       << "    const response = await fetch('/" << name << "/state');\n"
        << "    if (response.ok) {\n"
        << "        document.getElementById('" << name << "_state').innerHTML =\n"
        << "            await response.text();\n"
