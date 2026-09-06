@@ -107,10 +107,7 @@ void app_main()
     ESP_ERROR_CHECK(nvs_flash_init());
     esp_event_loop_create_default();
 
-    // ----
-    // Hardware
-    // initializations
-    // ----
+    // ---- Hardware initializations ----
     debug_server = new HttpServerEsp32(CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
     green_led = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_26);
     red_led = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_22);
@@ -124,57 +121,16 @@ void app_main()
     motor2_speed = new PwmEsp32(GPIO_NUM_19, LEDC_CHANNEL_1, LEDC_TIMER_1);
     motor2 = new MotorL298N(*motor2_speed, *motor2_forward, *motor2_reverse);
 
-    /* ---
-     * Back
-     * right
-     * ----*/
-    // motor_forward
-    // =
-    // new
-    // GpioEsp32(GpioDirection::OUTPUT,
-    // GPIO_NUM_27);
-    // motor_reverse
-    // =
-    // new
-    // GpioEsp32(GpioDirection::OUTPUT,
-    // GPIO_NUM_14);
-    // motor_speed
-    // =
-    // new
-    // PwmEsp32(GPIO_NUM_12,
-    // LEDC_CHANNEL_0,
-    // LEDC_TIMER_0);
+    /* --- Back right ----*/
+    // motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_27);
+    // motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_14);
+    // motor_speed = new PwmEsp32(GPIO_NUM_12, LEDC_CHANNEL_0, LEDC_TIMER_0);
 
-    // /*
-    // ---
-    // Front
-    // right
-    // (Broken)
-    // ----*/
-    // motor_forward
-    // =
-    // new
-    // GpioEsp32(GpioDirection::OUTPUT,
-    // GPIO_NUM_4);
-    // //
-    // GPIO
-    // 2
-    // is
-    // also
-    // Blue
-    // on-board
-    // LED
-    // motor_reverse
-    // =
-    // new
-    // GpioEsp32(GpioDirection::OUTPUT,
-    // GPIO_NUM_2);
-    // motor_speed
-    // =
-    // new
-    // PwmEsp32(GPIO_NUM_15,
-    // LEDC_CHANNEL_0,
-    // LEDC_TIMER_0);
+    // /* --- Front right (Broken) ----*/ motor_forward =
+    // new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_4);
+    // // GPIO 2 is also Blue on-board LED
+    // motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_2);
+    // motor_speed = new PwmEsp32(GPIO_NUM_15, LEDC_CHANNEL_0, LEDC_TIMER_0);
 
     /* ---
      * Back
@@ -184,19 +140,10 @@ void app_main()
     motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_25);
     motor_speed = new PwmEsp32(GPIO_NUM_32, LEDC_CHANNEL_0, LEDC_TIMER_0);
 
-    // ----
-    // Html
-    // rendering
-    // application
-    // ----
+    // ---- Html rendering application ----
     app = new rover::web::DeviceWebApp(*debug_server);
 
-    // ---
-    // Add
-    // peripherals
-    // to
-    // webpage
-    // ----
+    // --- Add peripherals to webpage ----
     green_led_web = new rover::web::LedWeb("green_led", green_led);
     red_led_web = new rover::web::LedWeb("red_led", red_led);
 

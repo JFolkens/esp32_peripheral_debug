@@ -71,13 +71,11 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
     cpp_req.method = from_httpd_method((httpd_method_t)req->method);
 
     // Call high-level interface with Request and get back Response
-    HttpServerInterface *server =
-        static_cast<HttpServerInterface *>(req->user_ctx);
+    HttpServerInterface *server = static_cast<HttpServerInterface *>(req->user_ctx);
     Response cpp_resp = server->handle_request(cpp_req);
 
     // Convert the returned Response into ESP32 HttpServer update
-    httpd_resp_set_status(
-        req, HttpServerInterface::status_text(cpp_resp.status_code));
+    httpd_resp_set_status(req, HttpServerInterface::status_text(cpp_resp.status_code));
     httpd_resp_set_type(req, cpp_resp.content_type.c_str());
     httpd_resp_send(req, cpp_resp.body.c_str(), HTTPD_RESP_USE_STRLEN);
 
@@ -86,8 +84,7 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
 
 }  // namespace
 
-HttpServerEsp32::HttpServerEsp32(std::string wifi_ssid,
-                                 std::string wifi_password)
+HttpServerEsp32::HttpServerEsp32(std::string wifi_ssid, std::string wifi_password)
 {
     esp_netif_init();
     esp_netif_create_default_wifi_sta();
@@ -97,21 +94,17 @@ HttpServerEsp32::HttpServerEsp32(std::string wifi_ssid,
 
     esp_event_handler_instance_t instance_any_id;
     esp_event_handler_instance_t instance_got_ip;
-    esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID,
-                                        &wifi_event_handler, this,
+    esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, this,
                                         &instance_any_id);
-    esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP,
-                                        &wifi_event_handler, this,
+    esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, this,
                                         &instance_got_ip);
 
     wifi_config_t wifi_config = {};
-    std::copy_n(wifi_ssid.begin(),
-                std::min(wifi_ssid.size(), sizeof(wifi_config.sta.ssid)),
+    std::copy_n(wifi_ssid.begin(), std::min(wifi_ssid.size(), sizeof(wifi_config.sta.ssid)),
                 wifi_config.sta.ssid);
-    std::copy_n(
-        wifi_password.begin(),
-        std::min(wifi_password.size(), sizeof(wifi_config.sta.password)),
-        wifi_config.sta.password);
+    std::copy_n(wifi_password.begin(),
+                std::min(wifi_password.size(), sizeof(wifi_config.sta.password)),
+                wifi_config.sta.password);
 
     esp_wifi_set_mode(WIFI_MODE_STA);
     esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
@@ -124,8 +117,7 @@ void HttpServerEsp32::start_webserver()
     config.lru_purge_enable = true;
     config.uri_match_fn = httpd_uri_match_wildcard;
 
-    log_info(HTTP_SERVER_TAG, "Starting server on port: '%d",
-             config.server_port);
+    log_info(HTTP_SERVER_TAG, "Starting server on port: %d", config.server_port);
 
     if (httpd_start(&connection, &config) != ESP_OK) {
         log_info(HTTP_SERVER_TAG, "Error starting server!");
@@ -142,8 +134,8 @@ void HttpServerEsp32::start_webserver()
     httpd_register_uri_handler(connection, &uri);
 }
 
-void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base,
-                                         int32_t event_id, void *event_data)
+void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id,
+                                         void *event_data)
 {
     // Since wifi_event_handler is passed to the C library, it must be a static
     // function, i.e. can not access "this". Instead "arg" is a pointer to our
@@ -151,8 +143,7 @@ void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base,
     HttpServerEsp32 *obj = static_cast<HttpServerEsp32 *>(arg);
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
-    } else if (event_base == WIFI_EVENT &&
-               event_id == WIFI_EVENT_STA_DISCONNECTED) {
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
         log_info(HTTP_SERVER_TAG, "Disconnected. Retrying connection...");
         esp_wifi_connect();
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {

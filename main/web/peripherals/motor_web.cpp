@@ -16,14 +16,7 @@ MotorWeb::MotorWeb(const std::string &name_, rover::hal::MotorInterface *motor_)
 
 std::string MotorWeb::html_state() const
 {
-    // Motor
-    // interface
-    // is
-    // [-1,
-    // 1].
-    // HTML
-    // displays
-    // percentage.
+    // Motor interface is [- 1]. HTML displays percentage.
     float speed_percent = motor->get_speed() * 100;
     bool is_on = std::abs(speed_percent) > 0.001;
 
@@ -48,22 +41,8 @@ std::string MotorWeb::html_control() const
     std::string slider_id = name + "_slider";
     std::string display_id = name + "_display";
 
-    // Fix:
-    // Dropping
-    // commands
-    // when
-    // user
-    // interacts
-    // fast
-    // We
-    // will
-    // miss
-    // callbacks
-    // unless
-    // we
-    // disable
-    // while
-    // processing
+    // Fix: Dropping commands when user interacts fast
+    // We will miss callbacks unless we di while processing
     const int user_throttle_ms = 300;
 
     std::stringstream ss;
@@ -139,11 +118,7 @@ std::vector<EndpointDefinition> MotorWeb::endpoints() const
 
 void MotorWeb::handle_action(const rover::hal::Request &action)
 {
-    // URI
-    // should
-    // be
-    // in
-    // format:
+    // URI should be in format:
     // /name/update?mode=<off|forward|reverse>?speed=<speed>
     const std::string mode_start_str = "?mode=";
     size_t mode_start = action.uri.find(mode_start_str);
@@ -156,11 +131,7 @@ void MotorWeb::handle_action(const rover::hal::Request &action)
         return;
     }
 
-    // Beginning
-    // of
-    // mode,
-    // without
-    // "?mode="
+    // Beginning of mode, without "?mode="
     mode_start += mode_start_str.size();
     std::string mode = action.uri.substr(mode_start, speed_start - mode_start);
     std::string speed_str = action.uri.substr(speed_start + speed_start_str.size());

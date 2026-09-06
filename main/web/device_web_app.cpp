@@ -5,11 +5,7 @@ namespace rover::web
 
 DeviceWebApp::DeviceWebApp(rover::hal::HttpServerInterface &server_) : server(server_)
 {
-    // Endpoint
-    // for
-    // landing
-    // page,
-    // "/"
+    // Endpoint for landing page, "/"
     server.add_endpoint("/", rover::hal::HttpMethod::GET, [this](const rover::hal::Request &req) {
         rover::hal::Response response = {};
         response.body = render_page();
