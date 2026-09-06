@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include "../../hal/log/logging.h"
+
 namespace rover::web
 {
 
@@ -13,7 +15,12 @@ LedWeb::LedWeb(const std::string &name_, rover::hal::GpioInterface *led_)
 
 std::string LedWeb::html_state() const
 {
-    // LED is either on or off.
+    // LED
+    // is
+    // either
+    // on
+    // or
+    // off.
     std::string state = led->get() ? "on" : "off";
 
     return name + " is currently " + state;
@@ -21,16 +28,32 @@ std::string LedWeb::html_state() const
 
 std::string LedWeb::html_control() const
 {
-    // If we are on, show a button "Turn off".
-    // If we are off, show a button "Turn on".
+    // If
+    // we
+    // are
+    // on,
+    // show
+    // a
+    // button
+    // "Turn
+    // off".
+    // If
+    // we
+    // are
+    // off,
+    // show
+    // a
+    // button
+    // "Turn
+    // on".
     bool is_on = led->get();
     std::string action = is_on ? "off" : "on";
     std::string label = is_on ? "Turn OFF" : "Turn ON";
     std::string class_name = is_on ? "button" : "button button-off";
 
     std::stringstream ss;
-    ss << "<a href=/" << name << "/" << action << "><button class=\""
-       << class_name << "\">" << label << "</button></a>";
+    ss << "<a href=/" << name << "/" << action << "><button class=\"" << class_name << "\">"
+       << label << "</button></a>";
     return ss.str();
 }
 
@@ -49,11 +72,12 @@ void LedWeb::handle_action(const rover::hal::Request &action)
     std::string cmd = action.uri.substr(cmd_start + 1);
     if (cmd == "on") {
         led->set(true);
-    }
-
-    if (cmd == "off") {
+    } else if (cmd == "off") {
         led->set(false);
+    } else {
+        rover::hal::log_error("LedWeb", "Unknown command: %s", cmd);
     }
 }
 
-}  // namespace rover::web
+}  // namespace
+   // rover::web
