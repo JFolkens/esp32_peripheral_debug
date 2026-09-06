@@ -93,7 +93,7 @@ std::string PwmWeb::html_control() const
     return ss.str();
 }
 
-void PwmWeb::handle_update(const rover::hal::Parameters &parameters)
+void PwmWeb::handle_update(const std::map<std::string, std::string> &parameters)
 {
     const auto speed_it = parameters.find("speed");
     if (speed_it == parameters.end()) {

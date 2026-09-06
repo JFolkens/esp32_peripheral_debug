@@ -1,10 +1,12 @@
 #include "peripheral_mock.h"
 
+#include <utility>
+
 namespace rover::tests::web
 {
 
 PeripheralMock::PeripheralMock(std::string name_, rover::web::PeripheralType mode_)
-    : PeripheralInterface(name), mode(mode_)
+    : PeripheralInterface(std::move(name_)), mode(mode_)
 {
     // Empty
 }
@@ -19,7 +21,7 @@ std::string PeripheralMock::html_control() const
     return "control";
 }
 
-void PeripheralMock::handle_update(const rover::hal::Parameters &parameters)
+void PeripheralMock::handle_update(const std::map<std::string, std::string> &parameters)
 {
     value = parameters.at("value");
 }

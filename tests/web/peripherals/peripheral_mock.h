@@ -15,7 +15,7 @@ class PeripheralMock : public rover::web::PeripheralInterface
 
     std::string html_control() const override;
 
-    void handle_update(const rover::hal::Parameters &parameters) override;
+    void handle_update(const std::map<std::string, std::string> &parameters) override;
     rover::web::PeripheralType state_update_mode() const override;
 
     std::string value = "initial";

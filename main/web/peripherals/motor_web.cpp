@@ -115,7 +115,7 @@ std::string MotorWeb::html_control() const
     return ss.str();
 }
 
-void MotorWeb::handle_update(const rover::hal::Parameters &parameters)
+void MotorWeb::handle_update(const std::map<std::string, std::string> &parameters)
 {
     const auto mode_it = parameters.find("mode");
     const auto speed_it = parameters.find("speed");

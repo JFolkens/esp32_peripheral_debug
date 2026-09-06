@@ -36,7 +36,7 @@ class PeripheralInterface
     /**
      * @brief Respond to a web user interaction.
      */
-    virtual void handle_update(const rover::hal::Parameters &parameters) = 0;
+    virtual void handle_update(const std::map<std::string, std::string> &parameters) = 0;
 
     /**
      * @brief Peripherals by default are controls. Override for sensors.

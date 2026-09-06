@@ -15,7 +15,7 @@ class PwmWeb : public PeripheralInterface
 
     std::string html_state() const override;
     std::string html_control() const override;
-    void handle_update(const rover::hal::Parameters &parameters) override;
+    void handle_update(const std::map<std::string, std::string> &parameters) override;
 
    private:
     rover::hal::PwmInterface *pwm;

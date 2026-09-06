@@ -54,7 +54,7 @@ std::string LedWeb::html_control() const
     return ss.str();
 }
 
-void LedWeb::handle_update(const rover::hal::Parameters &parameters)
+void LedWeb::handle_update(const std::map<std::string, std::string> &parameters)
 {
     const auto action_it = parameters.find("action");
     if (action_it == parameters.end())
