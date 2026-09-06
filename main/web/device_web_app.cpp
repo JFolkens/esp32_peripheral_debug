@@ -19,24 +19,27 @@ void DeviceWebApp::add_peripheral(PeripheralInterface *peripheral)
 {
     peripherals.push_back(peripheral);
 
+    // Each peripheral can handle two functions (endpoints):
+    // "/state", which reads hardware and updates html
+    // "/update", which takes parameters and modifies the hardware
+    auto state_cb = [peripheral](const rover::hal::Request &) {
+        rover::hal::Response response;
+        response.content_type = "text/html";
+        response.body = peripheral->html_state();
+        return response;
+    };
     const std::string state_uri = "/" + peripheral->id() + "/state";
-    server.add_endpoint(state_uri, rover::hal::HttpMethod::GET,
-                        [peripheral](const rover::hal::Request &) {
-                            rover::hal::Response response;
-                            response.content_type = "text/html";
-                            response.body = peripheral->render_state();
-                            return response;
-                        });
+    server.add_endpoint(state_uri, rover::hal::HttpMethod::GET, state_cb);
 
+    auto update_cb = [peripheral](const rover::hal::Request &request) {
+        peripheral->handle_update(request.parameters);
+        rover::hal::Response response;
+        response.content_type = "application/json";
+        response.body = "{\"ok\":true}";
+        return response;
+    };
     const std::string update_uri = "/" + peripheral->id() + "/update";
-    server.add_endpoint(update_uri, rover::hal::HttpMethod::POST,
-                        [peripheral](const rover::hal::Request &request) {
-                            peripheral->handle_update(request.parameters);
-                            rover::hal::Response response;
-                            response.content_type = "application/json";
-                            response.body = "{\"ok\":true}";
-                            return response;
-                        });
+    server.add_endpoint(update_uri, rover::hal::HttpMethod::POST, update_cb);
 }
 
 std::string DeviceWebApp::render_page() const
@@ -60,7 +63,7 @@ std::string DeviceWebApp::render_page() const
         )raw";
 
     for (const auto &peripheral : peripherals) {
-        html += peripheral->render_html();
+        html += peripheral->html_state_and_control();
     }
 
     std::stringstream polling_script;
@@ -69,7 +72,7 @@ std::string DeviceWebApp::render_page() const
                    << "            const sensorStates = [\n";
     bool first_sensor = true;
     for (const auto &peripheral : peripherals) {
-        if (peripheral->state_update_mode() != StateUpdateMode::Poll)
+        if (peripheral->state_update_mode() != PeripheralType::Sensor)
             continue;
         if (!first_sensor)
             polling_script << ",\n";

@@ -1,45 +1,16 @@
 #include <gtest/gtest.h>
 
 #include "main/web/device_web_app.h"
+#include "peripherals/peripheral_mock.h"
 
 namespace rover::tests::web
 {
-
-class TestPeripheral : public rover::web::PeripheralInterface
-{
-   public:
-    TestPeripheral() : PeripheralInterface("test")
-    {
-    }
-
-    std::string html_state() const override
-    {
-        return "value: " + value;
-    }
-
-    std::string html_control() const override
-    {
-        return "control";
-    }
-
-    void handle_update(const rover::hal::Parameters &parameters) override
-    {
-        value = parameters.at("value");
-    }
-
-    rover::web::StateUpdateMode state_update_mode() const override
-    {
-        return rover::web::StateUpdateMode::Poll;
-    }
-
-    std::string value = "initial";
-};
 
 TEST(DeviceWebAppTest, RegistersStateAndUpdateRoutes)
 {
     rover::hal::HttpServerInterface server;
     rover::web::DeviceWebApp app(server);
-    TestPeripheral peripheral;
+    PeripheralMock peripheral("TEST", rover::web::PeripheralType::Sensor);
     app.add_peripheral(&peripheral);
 
     const rover::hal::Response state =

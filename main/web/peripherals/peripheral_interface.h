@@ -7,9 +7,9 @@
 namespace rover::web
 {
 
-enum class StateUpdateMode {
-    Command,
-    Poll
+enum class PeripheralType {
+    Control,
+    Sensor
 };
 
 class PeripheralInterface
@@ -26,26 +26,31 @@ class PeripheralInterface
     /**
      * @brief Return a HTML rendering of state and available controls.
      */
-    std::string render_html();
-
-    std::string render_state() const;
+    std::string html_state_and_control();
 
     /**
-     * @brief Get a formal list of named actions (endpoints) for this.
-     */
-    virtual void handle_update(const rover::hal::Parameters &parameters) = 0;
-
-    virtual StateUpdateMode state_update_mode() const
-    {
-        return StateUpdateMode::Command;
-    }
-
-   protected:
-    /**
-     * @brief Child classes must provide an HTML block representing their state.
+     * @brief Return an HTML rendering of state.
      */
     virtual std::string html_state() const = 0;
 
+    /**
+     * @brief Respond to a web user interaction.
+     */
+    virtual void handle_update(const rover::hal::Parameters &parameters) = 0;
+
+    /**
+     * @brief Peripherals by default are controls. Override for sensors.
+     *
+     * The difference between a Control and a Sensor is refresh behavior.
+     * Controls (LEDs, motors) only change state when user interacts with them.
+     * Sensors update on a timer.
+     */
+    virtual PeripheralType state_update_mode() const
+    {
+        return PeripheralType::Control;
+    }
+
+   protected:
     /**
      * @brief Child classes must provide an HTML block for control options.
      */

@@ -62,7 +62,7 @@ std::string PwmWeb::html_control() const
        << "\n"
        << "async function sendValue(val) {\n"
        << "    await fetch(\n"
-       << "        `/" << name << "/update?value=${encodeURIComponent(val)}`,\n"
+       << "        `/" << name << "/update?speed=${encodeURIComponent(val)}`,\n"
        << "          { method: 'POST' });\n"
        << "    const response = await fetch('/" << name << "/state');\n"
        << "    if (response.ok) {\n"
@@ -95,11 +95,13 @@ std::string PwmWeb::html_control() const
 
 void PwmWeb::handle_update(const rover::hal::Parameters &parameters)
 {
-    const auto value_it = parameters.find("value");
-    if (value_it == parameters.end())
+    const auto speed_it = parameters.find("speed");
+    if (speed_it == parameters.end()) {
+        rover::hal::log_info("PwmWeb", "PWM updated but no speed parameter given");
         return;
+    }
 
-    float speed = std::stof(value_it->second);
+    float speed = std::stof(speed_it->second);
 
     // 5% is low enough that user likely meant to drag slider to zero.
     // If this was an LED dimmer, it would appear "off" at 5%,
