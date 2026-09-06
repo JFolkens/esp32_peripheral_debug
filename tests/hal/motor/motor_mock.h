@@ -15,5 +15,4 @@ class MotorMock : public rover::hal::MotorInterface
     int stop_call_count = 0;
 };
 
-}  // namespace
-   // rover::tests::hal
+}  // namespace  rover::tests::hal

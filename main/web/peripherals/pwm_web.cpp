@@ -54,6 +54,7 @@ std::string PwmWeb::html_control() const
        << "max=\"100\" value=\"" << speed << "\">\n"
        << "<span id=\"" << display_id << "\">" << speed << "</span>\n"
        << "<script>\n"
+       << "(() => {\n"
        << "const slider = document.getElementById('" << slider_id << "');\n"
        << "const display = document.getElementById('" << display_id << "');\n"
        << "\n"
@@ -82,6 +83,7 @@ std::string PwmWeb::html_control() const
        << "    }\n"
        << "    sendValue(e.target.value);\n"
        << "});\n"
+       << "})();\n"
        << "</script>\n";
 
     return ss.str();
@@ -117,5 +119,4 @@ void PwmWeb::handle_action(const rover::hal::Request &action)
         pwm->set_speed(speed);
     }
 }
-}  // namespace
-   // rover::web
+}  // namespace  rover::web

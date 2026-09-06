@@ -22,5 +22,4 @@ class MotorWeb : public PeripheralInterface
    private:
     rover::hal::MotorInterface *motor;
 };
-}  // namespace
-   // rover::web
+}  // namespace  rover::web

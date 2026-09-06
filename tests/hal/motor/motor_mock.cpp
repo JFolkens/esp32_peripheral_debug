@@ -14,5 +14,4 @@ void MotorMock::stop()
     stop_call_count++;
 }
 
-}  // namespace
-   // rover::tests::hal
+}  // namespace  rover::tests::hal

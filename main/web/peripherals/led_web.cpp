@@ -58,5 +58,4 @@ void LedWeb::handle_action(const rover::hal::Request &action)
     }
 }
 
-}  // namespace
-   // rover::web
+}  // namespace  rover::web

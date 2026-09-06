@@ -61,5 +61,4 @@ std::string DeviceWebApp::render_page() const
     return html;
 }
 
-}  // namespace
-   // rover::web
+}  // namespace  rover::web

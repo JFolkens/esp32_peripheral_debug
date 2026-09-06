@@ -56,6 +56,7 @@ std::string MotorWeb::html_control() const
        << " max=\"100\" value=\"" << speed_percent << "\"" << (is_off ? " disabled" : "") << ">\n"
        << "<span id=\"" << display_id << "\">" << speed_percent << "</span>\n"
        << "<script>\n"
+       << "(() => {\n"
        << "const slider = document.getElementById('" << slider_id << "');\n"
        << "const display = document.getElementById('" << display_id << "');\n"
        << "const directions = document.querySelectorAll('input[name=\\'" << direction_name
@@ -104,6 +105,7 @@ std::string MotorWeb::html_control() const
        << "        sendValue(e.target.value, off ? 0 : slider.value);\n"
        << "    });\n"
        << "});\n"
+       << "})();\n"
        << "</script>\n";
 
     return ss.str();
@@ -147,5 +149,4 @@ void MotorWeb::handle_action(const rover::hal::Request &action)
     }
 }
 
-}  // namespace
-   // rover::web
+}  // namespace  rover::web
