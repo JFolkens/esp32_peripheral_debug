@@ -15,12 +15,15 @@ enum class HttpMethod {
     DELETE
 };
 
+using Parameters = std::map<std::string, std::string>;
+
 /** @brief Request from HTTP server. Parameter to endpoint callback. */
 struct Request
 {
     std::string uri;
     std::string body;
     HttpMethod method;
+    Parameters parameters;
 };
 
 /** @brief Response to HTTP server request. Return value for endpoint callback.

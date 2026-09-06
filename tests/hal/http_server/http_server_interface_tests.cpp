@@ -11,8 +11,7 @@ namespace rover::tests::hal
 TEST(HttpServerInterfaceTest, MissingRouteReturnsNotFound)
 {
     rover::hal::HttpServerInterface server;
-    const rover::hal::Request request{"/missing", "",
-                                      rover::hal::HttpMethod::GET};
+    const rover::hal::Request request{"/missing", "", rover::hal::HttpMethod::GET};
 
     const rover::hal::Response response = server.handle_request(request);
 
@@ -30,8 +29,7 @@ TEST(HttpServerInterfaceTest, DispatchesMatchingRouteAndPreservesRequest)
                             called = true;
                             EXPECT_EQ(request.uri, "/submit");
                             EXPECT_EQ(request.body, "payload");
-                            EXPECT_EQ(request.method,
-                                      rover::hal::HttpMethod::POST);
+                            EXPECT_EQ(request.method, rover::hal::HttpMethod::POST);
 
                             rover::hal::Response response;
                             response.status_code = 201;
@@ -40,8 +38,8 @@ TEST(HttpServerInterfaceTest, DispatchesMatchingRouteAndPreservesRequest)
                             return response;
                         });
 
-    const rover::hal::Response response = server.handle_request(
-        {"/submit", "payload", rover::hal::HttpMethod::POST});
+    const rover::hal::Response response =
+        server.handle_request({"/submit", "payload", rover::hal::HttpMethod::POST});
 
     EXPECT_TRUE(called);
     EXPECT_EQ(response.status_code, 201);
@@ -57,17 +55,33 @@ TEST(HttpServerInterfaceTest, DispatchesRouteWithQueryString)
                         [&called](const rover::hal::Request &request) {
                             called = true;
                             EXPECT_EQ(request.uri, "/m_speed/update?value=47");
+                            EXPECT_EQ(request.parameters.at("value"), "47");
 
                             rover::hal::Response response;
                             response.body = "updated";
                             return response;
                         });
 
-    const rover::hal::Response response = server.handle_request(
-        {"/m_speed/update?value=47", "", rover::hal::HttpMethod::GET});
+    const rover::hal::Response response =
+        server.handle_request({"/m_speed/update?value=47", "", rover::hal::HttpMethod::GET});
 
     EXPECT_TRUE(called);
     EXPECT_EQ(response.body, "updated");
+}
+
+TEST(HttpServerInterfaceTest, ParsesQueryAndFormParameters)
+{
+    rover::hal::HttpServerInterface server;
+    server.add_endpoint("/update", rover::hal::HttpMethod::POST,
+                        [](const rover::hal::Request &request) {
+                            EXPECT_EQ(request.parameters.at("mode"), "forward");
+                            EXPECT_EQ(request.parameters.at("speed"), "50");
+                            EXPECT_EQ(request.parameters.at("label"), "front left");
+                            return rover::hal::Response{};
+                        });
+
+    server.handle_request({"/update?mode=forward&speed=25", "speed=50&label=front+left",
+                           rover::hal::HttpMethod::POST});
 }
 
 TEST(HttpServerInterfaceTest, URIAndMethodMustMatchExactly)
@@ -86,18 +100,11 @@ TEST(HttpServerInterfaceTest, URIAndMethodMustMatchExactly)
                             return rover::hal::Response{};
                         });
 
-    EXPECT_EQ(
-        server.handle_request({"/status", "", rover::hal::HttpMethod::GET})
-            .status_code,
-        200);
-    EXPECT_EQ(
-        server.handle_request({"/status", "", rover::hal::HttpMethod::POST})
-            .status_code,
-        200);
-    EXPECT_EQ(
-        server.handle_request({"/status/", "", rover::hal::HttpMethod::GET})
-            .status_code,
-        404);
+    EXPECT_EQ(server.handle_request({"/status", "", rover::hal::HttpMethod::GET}).status_code, 200);
+    EXPECT_EQ(server.handle_request({"/status", "", rover::hal::HttpMethod::POST}).status_code,
+              200);
+    EXPECT_EQ(server.handle_request({"/status/", "", rover::hal::HttpMethod::GET}).status_code,
+              404);
     EXPECT_EQ(get_calls, 1);
     EXPECT_EQ(post_calls, 1);
 }

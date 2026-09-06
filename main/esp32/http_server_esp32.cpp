@@ -124,14 +124,21 @@ void HttpServerEsp32::start_webserver()
         return;
     }
 
-    // Match all URIs to the callback function
-    const httpd_uri_t uri = {
+    // Match all GET and POST URIs to the callback function.
+    const httpd_uri_t get_uri = {
         .uri = "/*",
         .method = HTTP_GET,
         .handler = esp32_uri_handler,
         .user_ctx = static_cast<void *>(this),
     };
-    httpd_register_uri_handler(connection, &uri);
+    const httpd_uri_t post_uri = {
+        .uri = "/*",
+        .method = HTTP_POST,
+        .handler = esp32_uri_handler,
+        .user_ctx = static_cast<void *>(this),
+    };
+    httpd_register_uri_handler(connection, &get_uri);
+    httpd_register_uri_handler(connection, &post_uri);
 }
 
 void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id,

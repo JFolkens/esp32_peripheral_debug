@@ -31,24 +31,35 @@ std::string LedWeb::html_control() const
     std::string class_name = is_on ? "button" : "button button-off";
 
     std::stringstream ss;
-    ss << "<a href=/" << name << "/" << action << "><button class=\"" << class_name << "\">"
-       << label << "</button></a>";
+    ss << "<button type=\"button\" id=\"" << name << "_button\" class=\"" << class_name
+       << "\" data-action=\"" << action << "\">" << label << "</button>\n"
+       << "<script>\n"
+       << "(() => {\n"
+       << "const button = document.getElementById('" << name << "_button');\n"
+       << "button.addEventListener('click', async () => {\n"
+       << "    const action = button.dataset.action;\n"
+       << "    await fetch('/" << name << "/update?action=' + action, { method: 'POST' });\n"
+       << "    const response = await fetch('/" << name << "/state');\n"
+       << "    if (response.ok) {\n"
+       << "        document.getElementById('" << name
+       << "_state').innerHTML = await response.text();\n"
+       << "    }\n"
+       << "    const isOn = action === 'on';\n"
+       << "    button.dataset.action = isOn ? 'off' : 'on';\n"
+       << "    button.textContent = isOn ? 'Turn OFF' : 'Turn ON';\n"
+       << "    button.className = isOn ? 'button' : 'button button-off';\n"
+       << "});\n"
+       << "})();\n"
+       << "</script>";
     return ss.str();
 }
 
-std::vector<EndpointDefinition> LedWeb::endpoints() const
+void LedWeb::handle_update(const rover::hal::Parameters &parameters)
 {
-    std::vector<EndpointDefinition> defs;
-    defs.push_back({"/" + name + "/on", rover::hal::HttpMethod::GET, "on"});
-    defs.push_back({"/" + name + "/off", rover::hal::HttpMethod::GET, "off"});
-    return defs;
-}
-
-void LedWeb::handle_action(const rover::hal::Request &action)
-{
-    size_t cmd_start = action.uri.rfind("/");
-
-    std::string cmd = action.uri.substr(cmd_start + 1);
+    const auto action_it = parameters.find("action");
+    if (action_it == parameters.end())
+        return;
+    const std::string &cmd = action_it->second;
     if (cmd == "on") {
         led->set(true);
     } else if (cmd == "off") {

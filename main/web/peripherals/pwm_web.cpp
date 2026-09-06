@@ -60,11 +60,15 @@ std::string PwmWeb::html_control() const
        << "\n"
        << "let debounceTimer = null;\n"
        << "\n"
-       << "function sendValue(val) {\n"
-       << "    fetch(\n"
+       << "async function sendValue(val) {\n"
+       << "    await fetch(\n"
        << "        `/" << name << "/update?value=${encodeURIComponent(val)}`,\n"
-       << "          { method: 'GET' })\n"
-       << "        .catch(() => {});\n"
+       << "          { method: 'POST' });\n"
+       << "    const response = await fetch('/" << name << "/state');\n"
+       << "    if (response.ok) {\n"
+       << "        document.getElementById('" << name << "_state').innerHTML =\n"
+       << "            await response.text();\n"
+       << "    }\n"
        << "}\n"
        << "\n"
        << "slider.addEventListener('input', (e) => {\n"
@@ -89,26 +93,13 @@ std::string PwmWeb::html_control() const
     return ss.str();
 }
 
-std::vector<EndpointDefinition> PwmWeb::endpoints() const
+void PwmWeb::handle_update(const rover::hal::Parameters &parameters)
 {
-    std::vector<EndpointDefinition> defs;
-    defs.push_back({"/" + name + "/update", rover::hal::HttpMethod::GET, "update"});
-    return defs;
-}
-
-void PwmWeb::handle_action(const rover::hal::Request &action)
-{
-    const std::string param = "?value=";
-    size_t num_start = action.uri.find(param);
-
-    if (num_start == std::string::npos) {
-        rover::hal::log_error("PwmWeb", "Malformed URI request. Must contain '?value=': %s",
-                              action.uri.c_str());
+    const auto value_it = parameters.find("value");
+    if (value_it == parameters.end())
         return;
-    }
 
-    std::string subs = action.uri.substr(num_start + param.size());
-    float speed = std::stof(subs);
+    float speed = std::stof(value_it->second);
 
     // 5% is low enough that user likely meant to drag slider to zero.
     // If this was an LED dimmer, it would appear "off" at 5%,

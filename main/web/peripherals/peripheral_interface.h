@@ -1,18 +1,15 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 #include "../../hal/http_server/http_server_interface.h"
 
 namespace rover::web
 {
 
-struct EndpointDefinition
-{
-    std::string uri;
-    rover::hal::HttpMethod method = rover::hal::HttpMethod::GET;
-    std::string action;
+enum class StateUpdateMode {
+    Command,
+    Poll
 };
 
 class PeripheralInterface
@@ -31,15 +28,17 @@ class PeripheralInterface
      */
     std::string render_html();
 
+    std::string render_state() const;
+
     /**
      * @brief Get a formal list of named actions (endpoints) for this.
      */
-    virtual std::vector<EndpointDefinition> endpoints() const = 0;
+    virtual void handle_update(const rover::hal::Parameters &parameters) = 0;
 
-    /**
-     * @brief Respond to a user action.
-     */
-    virtual void handle_action(const rover::hal::Request &req) = 0;
+    virtual StateUpdateMode state_update_mode() const
+    {
+        return StateUpdateMode::Command;
+    }
 
    protected:
     /**

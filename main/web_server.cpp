@@ -1,9 +1,4 @@
-/* Example
-   web
-   server
-   for
-   controlling
-   peripherals
+/* Example web server for controlling peripherals
 
 */
 
@@ -34,25 +29,11 @@ extern "C" {
 #include "web/peripherals/pwm_web.h"
 
 /*
- The WIFI
- name is
- stored in
- KConfig.projbuild
- but true
- password
- is hidden
- in my
- .gitignore'd
- "wifi_password.h".
- Create
- the file
- "wifi_password.h"
- and add:
- #undef
- CONFIG_WIFI_PASSWORD
- #define
- CONFIG_WIFI_PASSWORD
- <your_password_here>
+ The WIFI name is stored in KConfig.projbuild but true password
+ is hidden in my .gitignore'd "wifi_password.h".
+ Create the file "wifi_password.h" and add:
+ #undef CONFIG_WIFI_PASSWORD
+ #define CONFIG_WIFI_PASSWORD <your_password_here>
 */
 #include "wifi_password.h"
 
@@ -61,19 +42,12 @@ static const char *THREAD_TAG = "WEB_SERVER";
 using namespace rover::hal;
 using namespace rover::web;
 
-// ----
-// Hardware
+// ---- Hardware
 static GpioInterface *green_led;
 static GpioInterface *red_led;
 static HttpServerInterface *debug_server;
 
-// Temporary:
-// L298N
-// motor
-// as two
-// GPIOs
-// and a
-// PWM
+// Temporary: L298N motor as two GPIOs and a PWM
 static GpioInterface *motor_forward;
 static GpioInterface *motor_reverse;
 static PwmInterface *motor_speed;
@@ -83,10 +57,7 @@ static GpioInterface *motor2_reverse;
 static PwmInterface *motor2_speed;
 static MotorInterface *motor2;
 
-// ----
-// Web
-// Peripheral
-// Integrations
+// ---- Web Peripheral Integrations
 static rover::web::PeripheralInterface *green_led_web;
 static rover::web::PeripheralInterface *red_led_web;
 
@@ -96,8 +67,7 @@ static rover::web::PeripheralInterface *motor_speed_web;
 
 static rover::web::PeripheralInterface *motor2_web;
 
-// --- Web
-// application
+// --- Web application
 static rover::web::DeviceWebApp *app;
 
 extern "C" {
@@ -112,10 +82,7 @@ void app_main()
     green_led = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_26);
     red_led = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_22);
 
-    /* ---
-     * Front
-     * left
-     * ----*/
+    /* --- Front left ----*/
     motor2_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_5);
     motor2_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_18);
     motor2_speed = new PwmEsp32(GPIO_NUM_19, LEDC_CHANNEL_1, LEDC_TIMER_1);
@@ -126,16 +93,13 @@ void app_main()
     // motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_14);
     // motor_speed = new PwmEsp32(GPIO_NUM_12, LEDC_CHANNEL_0, LEDC_TIMER_0);
 
-    // /* --- Front right (Broken) ----*/ motor_forward =
-    // new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_4);
+    // /* --- Front right ----*/
+    // motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_4);
     // // GPIO 2 is also Blue on-board LED
     // motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_2);
     // motor_speed = new PwmEsp32(GPIO_NUM_15, LEDC_CHANNEL_0, LEDC_TIMER_0);
 
-    /* ---
-     * Back
-     * left
-     * ----*/
+    /* --- Back left ----*/
     motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_33);
     motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_25);
     motor_speed = new PwmEsp32(GPIO_NUM_32, LEDC_CHANNEL_0, LEDC_TIMER_0);
@@ -162,4 +126,5 @@ void app_main()
 
     app->add_peripheral(motor2_web);
 }
-}
+
+}  // extern "C"
