@@ -86,22 +86,15 @@ void app_main()
     app = std::make_unique<DeviceWebApp>(std::move(debug_server));
 
     // --- Add peripherals to webpage ----
-    std::unique_ptr<PeripheralInterface> green_led_web =
-        std::make_unique<LedWeb>("green_led", std::move(green_led));
-    std::unique_ptr<PeripheralInterface> red_led_web =
-        std::make_unique<LedWeb>("red_led", std::move(red_led));
+    auto green_led_web = std::make_unique<LedWeb>("green_led", std::move(green_led));
+    auto red_led_web = std::make_unique<LedWeb>("red_led", std::move(red_led));
 
-    std::unique_ptr<PeripheralInterface> motor_forward_web =
-        std::make_unique<LedWeb>("m_forward", std::move(motor_forward));
-    std::unique_ptr<PeripheralInterface> motor_reverse_web =
-        std::make_unique<LedWeb>("m_reverse", std::move(motor_reverse));
-    std::unique_ptr<PeripheralInterface> motor_speed_web =
-        std::make_unique<PwmWeb>("m_speed", std::move(motor_speed));
+    auto motor_forward_web = std::make_unique<LedWeb>("m_forward", std::move(motor_forward));
+    auto motor_reverse_web = std::make_unique<LedWeb>("m_reverse", std::move(motor_reverse));
+    auto motor_speed_web = std::make_unique<PwmWeb>("m_speed", std::move(motor_speed));
 
-    std::unique_ptr<PeripheralInterface> motor2_web =
-        std::make_unique<MotorWeb>("front_left", std::move(motor2));
-    std::unique_ptr<PeripheralInterface> motor3_web =
-        std::make_unique<MotorWeb>("back_right", std::move(motor3));
+    auto motor2_web = std::make_unique<MotorWeb>("front_left", std::move(motor2));
+    auto motor3_web = std::make_unique<MotorWeb>("back_right", std::move(motor3));
 
     app->add_peripheral(std::move(green_led_web));
     app->add_peripheral(std::move(red_led_web));
