@@ -52,59 +52,43 @@ void app_main()
     ESP_ERROR_CHECK(nvs_flash_init());
     esp_event_loop_create_default();
 
-    // ---- Hardware initializations ----
+    /* --- Motors ---- */
+    /* Problems:
+     * Gpio 2 (front_right:reverse) is Blue on-board LED. Also must be low on boot
+     * Gpio 5 (front_left:forward) must be high on boot
+     * Gpio 15 (front_right:pwm) must be high during boot
+     * Gpio 12 (back_right:pwm) must be low during boot
+     *
+     * Available GPIOs:
+     * D13, D21, D22, D23, D26, TX2/RX2
+     *
+     * Solution: Move front left JST down to D23,22,21 (becomes front right)
+     *           New "front left" gets D4 instead of D5
+     *           Back left D12 gets D13
+     */
+    auto front_left = std::unique_ptr<MotorInterface>(
+        MotorL298nEsp32(GPIO_NUM_5, GPIO_NUM_18, GPIO_NUM_19, LEDC_CHANNEL_0, LEDC_TIMER_0));
+    auto front_right = std::unique_ptr<MotorInterface>(
+        MotorL298nEsp32(GPIO_NUM_4, GPIO_NUM_2, GPIO_NUM_15, LEDC_CHANNEL_1, LEDC_TIMER_1));
+    auto back_right = std::unique_ptr<MotorInterface>(
+        MotorL298nEsp32(GPIO_NUM_27, GPIO_NUM_14, GPIO_NUM_12, LEDC_CHANNEL_2, LEDC_TIMER_2));
+    auto back_left = std::unique_ptr<MotorInterface>(
+        MotorL298nEsp32(GPIO_NUM_33, GPIO_NUM_25, GPIO_NUM_32, LEDC_CHANNEL_3, LEDC_TIMER_3));
+
+    /* --- Html rendering application ---- */
     auto debug_server = std::make_unique<HttpServerEsp32>(CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
-    auto green_led = std::make_unique<GpioEsp32>(GpioDirection::OUTPUT, GPIO_NUM_26);
-    auto red_led = std::make_unique<GpioEsp32>(GpioDirection::OUTPUT, GPIO_NUM_22);
-
-    /* --- Front left ----*/
-    auto motor2_forward = std::make_unique<GpioEsp32>(GpioDirection::OUTPUT, GPIO_NUM_5);
-    auto motor2_reverse = std::make_unique<GpioEsp32>(GpioDirection::OUTPUT, GPIO_NUM_18);
-    auto motor2_speed = std::make_unique<PwmEsp32>(GPIO_NUM_19, LEDC_CHANNEL_1, LEDC_TIMER_1);
-    auto motor2 = std::make_unique<MotorL298n>(std::move(motor2_forward), std::move(motor2_reverse),
-                                               std::move(motor2_speed));
-
-    /* --- Back right ----*/
-    auto motor3 = std::unique_ptr<MotorInterface>(
-        MotorL298nEsp32(GPIO_NUM_27, GPIO_NUM_14, GPIO_NUM_12, LEDC_CHANNEL_0, LEDC_TIMER_0));
-    // motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_27);
-    // motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_14);
-    // motor_speed = new PwmEsp32(GPIO_NUM_12, LEDC_CHANNEL_0, LEDC_TIMER_0);
-
-    // /* --- Front right ----*/
-    // motor_forward = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_4);
-    // // GPIO 2 is also Blue on-board LED
-    // motor_reverse = new GpioEsp32(GpioDirection::OUTPUT, GPIO_NUM_2);
-    // motor_speed = new PwmEsp32(GPIO_NUM_15, LEDC_CHANNEL_0, LEDC_TIMER_0);
-
-    /* --- Back left ----*/
-    auto motor_forward = std::make_unique<GpioEsp32>(GpioDirection::OUTPUT, GPIO_NUM_33);
-    auto motor_reverse = std::make_unique<GpioEsp32>(GpioDirection::OUTPUT, GPIO_NUM_25);
-    auto motor_speed = std::make_unique<PwmEsp32>(GPIO_NUM_32, LEDC_CHANNEL_2, LEDC_TIMER_2);
-
-    // ---- Html rendering application ----
     app = std::make_unique<DeviceWebApp>(std::move(debug_server));
 
-    // --- Add peripherals to webpage ----
-    auto green_led_web = std::make_unique<LedWeb>("green_led", std::move(green_led));
-    auto red_led_web = std::make_unique<LedWeb>("red_led", std::move(red_led));
+    /* --- Add peripherals to webpage ---- */
+    auto front_left_web = std::make_unique<MotorWeb>("front_left", std::move(front_left));
+    auto front_right_web = std::make_unique<MotorWeb>("front_right", std::move(front_right));
+    auto back_right_web = std::make_unique<MotorWeb>("back_right", std::move(back_right));
+    auto back_left_web = std::make_unique<MotorWeb>("back_left", std::move(back_left));
 
-    auto motor_forward_web = std::make_unique<LedWeb>("m_forward", std::move(motor_forward));
-    auto motor_reverse_web = std::make_unique<LedWeb>("m_reverse", std::move(motor_reverse));
-    auto motor_speed_web = std::make_unique<PwmWeb>("m_speed", std::move(motor_speed));
-
-    auto motor2_web = std::make_unique<MotorWeb>("front_left", std::move(motor2));
-    auto motor3_web = std::make_unique<MotorWeb>("back_right", std::move(motor3));
-
-    app->add_peripheral(std::move(green_led_web));
-    app->add_peripheral(std::move(red_led_web));
-
-    app->add_peripheral(std::move(motor_forward_web));
-    app->add_peripheral(std::move(motor_reverse_web));
-    app->add_peripheral(std::move(motor_speed_web));
-
-    app->add_peripheral(std::move(motor2_web));
-    app->add_peripheral(std::move(motor3_web));
+    app->add_peripheral(std::move(front_left_web));
+    app->add_peripheral(std::move(front_right_web));
+    app->add_peripheral(std::move(back_right_web));
+    app->add_peripheral(std::move(back_left_web));
 }
 
 }  // extern "C"
