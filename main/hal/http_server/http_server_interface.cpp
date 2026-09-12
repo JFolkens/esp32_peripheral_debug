@@ -10,7 +10,8 @@ namespace
 /**
  * Helper method for generating key:value pairs from web address
  */
-void parse_uri_parameters(const std::string &encoded, std::map<std::string, std::string> &parameters)
+void parse_uri_parameters(const std::string &encoded,
+                          std::map<std::string, std::string> &parameters)
 {
     size_t start = 0;
     while (start <= encoded.size()) {
