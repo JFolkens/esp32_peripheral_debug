@@ -26,8 +26,8 @@ enum class HttpMethod {
  */
 struct Request
 {
-    std::string path;       // Endpoint path
-    HttpMethod method;      // GET or POST
+    std::string path;   // Endpoint path
+    HttpMethod method;  // GET or POST
     std::map<std::string, std::string> parameters;
 };
 

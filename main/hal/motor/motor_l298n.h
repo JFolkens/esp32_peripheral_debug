@@ -26,8 +26,7 @@ namespace rover::hal
 class MotorL298N : public MotorInterface
 {
    public:
-    MotorL298N(PwmInterface &speed_control, GpioInterface &forward,
-               GpioInterface &reverse);
+    MotorL298N(PwmInterface &speed_control, GpioInterface &forward, GpioInterface &reverse);
     ~MotorL298N() = default;
 
     /**

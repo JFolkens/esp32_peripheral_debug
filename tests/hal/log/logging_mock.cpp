@@ -9,8 +9,7 @@ namespace rover::tests::hal
 {
 std::vector<Message> g_messages;
 
-void log(Message::Level level, const char *tag, const char *format,
-         va_list args)
+void log(Message::Level level, const char *tag, const char *format, va_list args)
 {
     char buffer[256];
 

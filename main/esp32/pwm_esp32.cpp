@@ -7,13 +7,12 @@ static const char *PWM_TAG = "PWM";
 namespace rover::hal
 {
 
-PwmEsp32::PwmEsp32(gpio_num_t pin_, ledc_channel_t ch_, ledc_timer_t timer_,
-                   uint32_t freq_hz)
+PwmEsp32::PwmEsp32(gpio_num_t pin_, ledc_channel_t ch_, ledc_timer_t timer_, uint32_t freq_hz)
     : pin(pin_), ch(ch_), timer(timer_)
 {
     // Initialize hardware
     ledc_timer_config_t ledc_timer = {
-        .speed_mode = LEDC_LOW_SPEED_MODE,  // ESP32 can handle high-speed mode
+        .speed_mode = LEDC_LOW_SPEED_MODE,     // ESP32 can handle high-speed mode
         .duty_resolution = LEDC_TIMER_13_BIT,  // Could potentially increase
         .timer_num = timer_,
         .freq_hz = freq_hz,

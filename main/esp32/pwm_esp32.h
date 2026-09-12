@@ -13,8 +13,7 @@ namespace rover::hal
 class PwmEsp32 : public PwmInterface
 {
    public:
-    PwmEsp32(gpio_num_t pin_, ledc_channel_t ch_, ledc_timer_t timer_,
-             uint32_t freq_hz = 5000);
+    PwmEsp32(gpio_num_t pin_, ledc_channel_t ch_, ledc_timer_t timer_, uint32_t freq_hz = 5000);
 
     void set_speed_(float speed) override;
     void turn_off_() override;

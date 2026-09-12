@@ -3,8 +3,7 @@
 namespace rover::hal
 {
 
-GpioInterface::GpioInterface(const GpioDirection &direction_)
-    : direction(direction_)
+GpioInterface::GpioInterface(const GpioDirection &direction_) : direction(direction_)
 {
     // Empty
 }

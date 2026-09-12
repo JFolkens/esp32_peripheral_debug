@@ -33,8 +33,8 @@ class HttpServerEsp32 : public HttpServerInterface
      * @note This function is static because it must match the C interface
      * and can not use Objects. Parameter `event_data` contains pointer `this`.
      */
-    static void wifi_event_handler(void *arg, esp_event_base_t event_base,
-                                   int32_t event_id, void *event_data);
+    static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id,
+                                   void *event_data);
 };
 
 }  // namespace rover::hal
