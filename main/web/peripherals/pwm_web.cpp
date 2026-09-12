@@ -3,10 +3,11 @@
 #include <sstream>
 
 #include "../../hal/log/logging.h"
-#include "pwm_control_js.h"
 
 namespace rover::web
 {
+
+const uint8_t pwm_control_script[] asm("_binary_web_assets_pwm_control_js_start");
 
 PwmWeb::PwmWeb(const std::string &name_, std::unique_ptr<rover::hal::PwmInterface> pwm_)
     : PeripheralInterface(name_), pwm(std::move(pwm_))
@@ -50,7 +51,7 @@ std::string PwmWeb::html_control() const
        << "<span id=\"" << display_id << "\">" << speed << "</span>\n"
        << "<script>\n"
        << "const PWM_NAME = '" << name << "';\n"
-       << rover::web::assets::get_pwm_control_js() << "\n"
+       << (const char *)pwm_control_script << "\n"
        << "</script>\n";
 
     return ss.str();

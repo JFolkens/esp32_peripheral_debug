@@ -4,10 +4,11 @@
 #include <sstream>
 
 #include "../../hal/log/logging.h"
-#include "motor_control_js.h"
 
 namespace rover::web
 {
+
+const uint8_t motor_control_script[] asm("_binary_web_assets_motor_control_js_start");
 
 MotorWeb::MotorWeb(const std::string &name_, std::unique_ptr<rover::hal::MotorInterface> motor_)
     : PeripheralInterface(name_), motor(std::move(motor_))
@@ -54,7 +55,7 @@ std::string MotorWeb::html_control() const
        << "<span id=\"" << display_id << "\">" << speed_percent << "</span>\n"
        << "<script>\n"
        << "const MOTOR_NAME = '" << name << "';\n"
-       << rover::web::assets::get_motor_control_js() << "\n"
+       << (const char *)motor_control_script << "\n"
        << "</script>\n";
 
     return ss.str();

@@ -3,10 +3,11 @@
 #include <sstream>
 
 #include "../../hal/log/logging.h"
-#include "led_control_js.h"
 
 namespace rover::web
 {
+
+const uint8_t led_control_script[] asm("_binary_web_assets_led_control_js_start");
 
 LedWeb::LedWeb(const std::string &name_, std::unique_ptr<rover::hal::GpioInterface> led_)
     : PeripheralInterface(name_), led(std::move(led_))
@@ -36,7 +37,7 @@ std::string LedWeb::html_control() const
        << "\" data-action=\"" << action << "\">" << label << "</button>\n"
        << "<script>\n"
        << "const LED_NAME = '" << name << "';\n"
-       << rover::web::assets::get_led_control_js() << "\n"
+       << (const char *)led_control_script << "\n"
        << "</script>";
     return ss.str();
 }
