@@ -21,7 +21,7 @@ std::string MotorWeb::html_state() const
     bool is_on = std::abs(speed_percent) > 0.001;
 
     if (!is_on) {
-        return name + "is set to OFF";
+        return name + " is set to OFF";
     } else {
         // Avoid std::to_string which pulls in the giant file "floating_to_chars".
         // We know speed <= 100 and printing with zero decimal places is fine

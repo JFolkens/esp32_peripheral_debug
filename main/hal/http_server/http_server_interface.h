@@ -15,11 +15,19 @@ enum class HttpMethod {
     DELETE
 };
 
-/** @brief Request from HTTP server. Parameter to endpoint callback. */
+/**
+ * @brief Http Server emits Requests for application handling.
+ *
+ * For example: http://192.168.1.10/my/path?key=5&key2=red
+ *
+ * path: "my/path"
+ * method: (HttpMethod::GET or HttpMethod::POST)
+ * parameters: {"key": "5", "key2", "red"}
+ */
 struct Request
 {
-    std::string path;
-    HttpMethod method;
+    std::string path;       // Endpoint path
+    HttpMethod method;      // GET or POST
     std::map<std::string, std::string> parameters;
 };
 
