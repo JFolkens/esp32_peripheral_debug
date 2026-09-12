@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "../../hal/log/logging.h"
+#include "motor_control_js.h"
 
 namespace rover::web
 {
@@ -41,10 +42,6 @@ std::string MotorWeb::html_control() const
     std::string slider_id = name + "_slider";
     std::string display_id = name + "_display";
 
-    // Fix: Dropping commands when user interacts fast
-    // We will miss callbacks unless we di while processing
-    const int user_throttle_ms = 300;
-
     std::stringstream ss;
     ss << "<label><input type=\"radio\" name=\"" << direction_name << "\" value=\"off\""
        << (is_off ? " checked" : "") << "> Off</label>\n"
@@ -56,59 +53,8 @@ std::string MotorWeb::html_control() const
        << " max=\"100\" value=\"" << speed_percent << "\"" << (is_off ? " disabled" : "") << ">\n"
        << "<span id=\"" << display_id << "\">" << speed_percent << "</span>\n"
        << "<script>\n"
-       << "(() => {\n"
-       << "const slider = document.getElementById('" << slider_id << "');\n"
-       << "const display = document.getElementById('" << display_id << "');\n"
-       << "const directions = document.querySelectorAll('input[name=\\'" << direction_name
-       << "\\']');\n"
-       << "\n"
-       << "let debounceTimer = null;\n"
-       << "\n"
-       << "function selectedDirection() {\n"
-       << "    return document.querySelector('input[name=\\'" << direction_name
-       << "\\']:checked').value;\n"
-       << "}\n"
-       << "\n"
-       << "async function sendValue(direction, value) {\n"
-       << "    const response = await fetch(\n"
-       << "        `/" << name
-       << "/update?mode=${encodeURIComponent(direction)}&speed=${encodeURIComponent(value)}`,\n"
-       << "          { method: 'POST' });\n"
-       << "    if (response.ok) {\n"
-       << "        document.getElementById('" << name << "_state').innerHTML =\n"
-       << "            await response.text();\n"
-       << "    }\n"
-       << "}\n"
-       << "\n"
-       << "slider.addEventListener('input', (e) => {\n"
-       << "    const value = e.target.value;\n"
-       << "    display.textContent = value;\n"
-       << "    if (debounceTimer) clearTimeout(debounceTimer);\n"
-       << "    debounceTimer = setTimeout(() => {\n"
-       << "        debounceTimer = null;\n"
-       << "        sendValue(selectedDirection(), value);\n"
-       << "    }, " << user_throttle_ms << ");\n"
-       << "});\n"
-       << "\n"
-       << "slider.addEventListener('change', (e) => {\n"
-       << "    if (debounceTimer) {\n"
-       << "        clearTimeout(debounceTimer); debounceTimer = null;\n"
-       << "    }\n"
-       << "    sendValue(selectedDirection(), e.target.value);\n"
-       << "});\n"
-       << "\n"
-       << "directions.forEach((direction) => {\n"
-       << "    direction.addEventListener('change', (e) => {\n"
-       << "        if (debounceTimer) {\n"
-       << "            clearTimeout(debounceTimer); debounceTimer = null;\n"
-       << "        }\n"
-       << "        const off = e.target.value === 'off';\n"
-       << "        slider.disabled = off;\n"
-       << "        if (off) display.textContent = '0';\n"
-       << "        sendValue(e.target.value, off ? 0 : slider.value);\n"
-       << "    });\n"
-       << "});\n"
-       << "})();\n"
+       << "const MOTOR_NAME = '" << name << "';\n"
+       << rover::web::assets::get_motor_control_js() << "\n"
        << "</script>\n";
 
     return ss.str();
