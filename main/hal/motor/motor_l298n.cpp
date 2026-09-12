@@ -5,11 +5,11 @@
 namespace rover::hal
 {
 
-MotorL298N::MotorL298N(PwmInterface &speed_control, GpioInterface &forward,
-                       GpioInterface &reverse)
+MotorL298N::MotorL298N(PwmInterface &speed_control, GpioInterface &forward, GpioInterface &reverse)
     : _speed_control(speed_control), _forward(forward), _reverse(reverse)
 {
-    // Empty
+    // Initialize hardware to speed=0
+    set_speed(0);
 }
 
 void MotorL298N::stop()

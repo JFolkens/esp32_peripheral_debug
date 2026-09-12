@@ -48,14 +48,14 @@ constexpr HttpMethod from_httpd_method(httpd_method_t method)
 }
 
 /**
- * @brief Convert ESP32 callback to high-level Response/Request paradigm.
+ * @brief ESP32 callback wrapper around HttpServerInterface.handle_request
  *
  * Can not be a class method because the function pointer is a parameter
  * to underlying C library call.
  */
 esp_err_t esp32_uri_handler(httpd_req_t *req)
 {
-    // Convert low-level ESP32 into interface Request object
+    // Convert low-level ESP32 into call to HttpServerInterface.handle_request
     std::string body;
     if (req->content_len > 0) {
         std::vector<char> buf(req->content_len + 1);
@@ -65,14 +65,10 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
         }
     }
 
-    Request cpp_req = {};
-    cpp_req.uri = req->uri;
-    cpp_req.body = body;
-    cpp_req.method = from_httpd_method((httpd_method_t)req->method);
-
-    // Call high-level interface with Request and get back Response
+    // Call high-level interface and get back Response
     HttpServerInterface *server = static_cast<HttpServerInterface *>(req->user_ctx);
-    Response cpp_resp = server->handle_request(cpp_req);
+    HttpMethod method = from_httpd_method((httpd_method_t)req->method);
+    Response cpp_resp = server->handle_request(req->uri, body, method);
 
     // Convert the returned Response into ESP32 HttpServer update
     httpd_resp_set_status(req, HttpServerInterface::status_text(cpp_resp.status_code));
@@ -124,14 +120,17 @@ void HttpServerEsp32::start_webserver()
         return;
     }
 
-    // Match all URIs to the callback function
-    const httpd_uri_t uri = {
-        .uri = "/*",
-        .method = HTTP_GET,
-        .handler = esp32_uri_handler,
-        .user_ctx = static_cast<void *>(this),
-    };
-    httpd_register_uri_handler(connection, &uri);
+    // ESP32 allows star values ("/*") for URI, but each method must be added explicitly.
+    // Currently only GET and POST URIs are supported.
+    for (const auto &method : {HTTP_GET, HTTP_POST}) {
+        const httpd_uri_t uri = {
+            .uri = "/*",
+            .method = method,
+            .handler = esp32_uri_handler,
+            .user_ctx = static_cast<void *>(this),
+        };
+        httpd_register_uri_handler(connection, &uri);
+    }
 }
 
 void HttpServerEsp32::wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id,

@@ -15,12 +15,20 @@ enum class HttpMethod {
     DELETE
 };
 
-/** @brief Request from HTTP server. Parameter to endpoint callback. */
+/**
+ * @brief Http Server emits Requests for application handling.
+ *
+ * For example: http://192.168.1.10/my/path?key=5&key2=red
+ *
+ * path: "my/path"
+ * method: (HttpMethod::GET or HttpMethod::POST)
+ * parameters: {"key": "5", "key2", "red"}
+ */
 struct Request
 {
-    std::string uri;
-    std::string body;
-    HttpMethod method;
+    std::string path;       // Endpoint path
+    HttpMethod method;      // GET or POST
+    std::map<std::string, std::string> parameters;
 };
 
 /** @brief Response to HTTP server request. Return value for endpoint callback.
@@ -53,8 +61,11 @@ class HttpServerInterface
     /**
      * @brief Respond to URI endpoint request or return a 404 response
      * for an unknown endpoint.
+     *
+     * This function must be public instead of protected because the low-level callback
+     * functions are C-based and can't handle object pointers.
      */
-    Response handle_request(const Request &request) const;
+    Response handle_request(const std::string uri, const std::string body, HttpMethod method) const;
 
     /**
      * @brief Convert an HTTP status code to an ESP-IDF status string.

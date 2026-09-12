@@ -21,7 +21,7 @@ std::string MotorWeb::html_state() const
     bool is_on = std::abs(speed_percent) > 0.001;
 
     if (!is_on) {
-        return name + "is set to OFF";
+        return name + " is set to OFF";
     } else {
         // Avoid std::to_string which pulls in the giant file "floating_to_chars".
         // We know speed <= 100 and printing with zero decimal places is fine
@@ -69,12 +69,15 @@ std::string MotorWeb::html_control() const
        << "\\']:checked').value;\n"
        << "}\n"
        << "\n"
-       << "function sendValue(direction, value) {\n"
-       << "    fetch(\n"
+       << "async function sendValue(direction, value) {\n"
+       << "    const response = await fetch(\n"
        << "        `/" << name
        << "/update?mode=${encodeURIComponent(direction)}&speed=${encodeURIComponent(value)}`,\n"
-       << "          { method: 'GET' })\n"
-       << "        .catch(() => {});\n"
+       << "          { method: 'POST' });\n"
+       << "    if (response.ok) {\n"
+       << "        document.getElementById('" << name << "_state').innerHTML =\n"
+       << "            await response.text();\n"
+       << "    }\n"
        << "}\n"
        << "\n"
        << "slider.addEventListener('input', (e) => {\n"
@@ -111,37 +114,19 @@ std::string MotorWeb::html_control() const
     return ss.str();
 }
 
-std::vector<EndpointDefinition> MotorWeb::endpoints() const
+void MotorWeb::handle_update(const std::map<std::string, std::string> &parameters)
 {
-    std::vector<EndpointDefinition> defs;
-    defs.push_back({"/" + name + "/update", rover::hal::HttpMethod::GET, "update"});
-    return defs;
-}
-
-void MotorWeb::handle_action(const rover::hal::Request &action)
-{
-    // URI should be in format:
-    // /name/update?mode=<off|forward|reverse>?speed=<speed>
-    const std::string mode_start_str = "?mode=";
-    size_t mode_start = action.uri.find(mode_start_str);
-
-    const std::string speed_start_str = "&speed=";
-    size_t speed_start = action.uri.find(speed_start_str);
-
-    if (mode_start == std::string::npos || speed_start == std::string::npos) {
-        rover::hal::log_error("MotorWeb", "Malformed URI request: %s", action.uri.c_str());
+    const auto mode_it = parameters.find("mode");
+    const auto speed_it = parameters.find("speed");
+    if (mode_it == parameters.end() || speed_it == parameters.end())
         return;
-    }
 
-    // Beginning of mode, without "?mode="
-    mode_start += mode_start_str.size();
-    std::string mode = action.uri.substr(mode_start, speed_start - mode_start);
-    std::string speed_str = action.uri.substr(speed_start + speed_start_str.size());
+    const std::string &mode = mode_it->second;
 
     if (mode == "off") {
         motor->stop();
     } else {
-        float speed_percent = std::stof(speed_str);
+        float speed_percent = std::stof(speed_it->second);
         if (mode == "reverse") {
             speed_percent = -speed_percent;
         }

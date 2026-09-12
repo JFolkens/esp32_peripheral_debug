@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 #include "../../hal/pwm/pwm_interface.h"
 #include "peripheral_interface.h"
@@ -16,8 +15,7 @@ class PwmWeb : public PeripheralInterface
 
     std::string html_state() const override;
     std::string html_control() const override;
-    std::vector<EndpointDefinition> endpoints() const override;
-    void handle_action(const rover::hal::Request &action) override;
+    void handle_update(const std::map<std::string, std::string> &parameters) override;
 
    private:
     rover::hal::PwmInterface *pwm;

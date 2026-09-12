@@ -60,11 +60,14 @@ std::string PwmWeb::html_control() const
        << "\n"
        << "let debounceTimer = null;\n"
        << "\n"
-       << "function sendValue(val) {\n"
-       << "    fetch(\n"
-       << "        `/" << name << "/update?value=${encodeURIComponent(val)}`,\n"
-       << "          { method: 'GET' })\n"
-       << "        .catch(() => {});\n"
+       << "async function sendValue(val) {\n"
+       << "    const response = await fetch(\n"
+       << "        `/" << name << "/update?speed=${encodeURIComponent(val)}`,\n"
+       << "          { method: 'POST' });\n"
+       << "    if (response.ok) {\n"
+       << "        document.getElementById('" << name << "_state').innerHTML =\n"
+       << "            await response.text();\n"
+       << "    }\n"
        << "}\n"
        << "\n"
        << "slider.addEventListener('input', (e) => {\n"
@@ -89,26 +92,15 @@ std::string PwmWeb::html_control() const
     return ss.str();
 }
 
-std::vector<EndpointDefinition> PwmWeb::endpoints() const
+void PwmWeb::handle_update(const std::map<std::string, std::string> &parameters)
 {
-    std::vector<EndpointDefinition> defs;
-    defs.push_back({"/" + name + "/update", rover::hal::HttpMethod::GET, "update"});
-    return defs;
-}
-
-void PwmWeb::handle_action(const rover::hal::Request &action)
-{
-    const std::string param = "?value=";
-    size_t num_start = action.uri.find(param);
-
-    if (num_start == std::string::npos) {
-        rover::hal::log_error("PwmWeb", "Malformed URI request. Must contain '?value=': %s",
-                              action.uri.c_str());
+    const auto speed_it = parameters.find("speed");
+    if (speed_it == parameters.end()) {
+        rover::hal::log_info("PwmWeb", "PWM updated but no speed parameter given");
         return;
     }
 
-    std::string subs = action.uri.substr(num_start + param.size());
-    float speed = std::stof(subs);
+    float speed = std::stof(speed_it->second);
 
     // 5% is low enough that user likely meant to drag slider to zero.
     // If this was an LED dimmer, it would appear "off" at 5%,
