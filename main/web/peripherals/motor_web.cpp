@@ -8,8 +8,8 @@
 namespace rover::web
 {
 
-MotorWeb::MotorWeb(const std::string &name_, rover::hal::MotorInterface *motor_)
-    : PeripheralInterface(name_), motor(motor_)
+MotorWeb::MotorWeb(const std::string &name_, std::unique_ptr<rover::hal::MotorInterface> motor_)
+    : PeripheralInterface(name_), motor(std::move(motor_))
 {
     // Empty
 }

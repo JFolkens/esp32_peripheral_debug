@@ -7,8 +7,8 @@
 namespace rover::web
 {
 
-PwmWeb::PwmWeb(const std::string &name_, rover::hal::PwmInterface *pwm_)
-    : PeripheralInterface(name_), pwm(pwm_)
+PwmWeb::PwmWeb(const std::string &name_, std::unique_ptr<rover::hal::PwmInterface> pwm_)
+    : PeripheralInterface(name_), pwm(std::move(pwm_))
 {
     // Empty
 }

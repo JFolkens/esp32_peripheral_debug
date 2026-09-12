@@ -5,7 +5,8 @@
 namespace rover::web
 {
 
-DeviceWebApp::DeviceWebApp(rover::hal::HttpServerInterface &server_) : server(server_)
+DeviceWebApp::DeviceWebApp(std::unique_ptr<rover::hal::HttpServerInterface> server_)
+    : server(std::move(server_))
 {
     // Endpoint for landing page, "/"
     const auto page_callback = [this](const rover::hal::Request &req) {
@@ -13,33 +14,35 @@ DeviceWebApp::DeviceWebApp(rover::hal::HttpServerInterface &server_) : server(se
         response.body = render_page();
         return response;
     };
-    server.add_endpoint("/", rover::hal::HttpMethod::GET, page_callback);
+    server->add_endpoint("/", rover::hal::HttpMethod::GET, page_callback);
 }
 
-void DeviceWebApp::add_peripheral(PeripheralInterface *peripheral)
+void DeviceWebApp::add_peripheral(std::unique_ptr<PeripheralInterface> peripheral)
 {
-    peripherals.push_back(peripheral);
-
     // Each peripheral can handle two functions (endpoints):
     // "/state", which reads hardware and updates html
     // "/update", which takes parameters and modifies the hardware
-    const auto state_cb = [peripheral](const rover::hal::Request &) {
+    PeripheralInterface *peripheral_ptr = peripheral.get();
+    const auto state_cb = [peripheral_ptr](const rover::hal::Request &) {
         rover::hal::Response response;
         response.content_type = "text/html";
-        response.body = peripheral->html_state();
+        response.body = peripheral_ptr->html_state();
         return response;
     };
     const std::string state_uri = "/" + peripheral->id() + "/state";
-    server.add_endpoint(state_uri, rover::hal::HttpMethod::GET, state_cb);
+    server->add_endpoint(state_uri, rover::hal::HttpMethod::GET, state_cb);
 
-    const auto update_cb = [peripheral](const rover::hal::Request &request) {
+    const auto update_cb = [peripheral_ptr](const rover::hal::Request &request) {
         rover::hal::Response response;
         response.content_type = "text/html";
-        response.body = peripheral->update_and_render_state(request.parameters);
+        response.body = peripheral_ptr->update_and_render_state(request.parameters);
         return response;
     };
     const std::string update_uri = "/" + peripheral->id() + "/update";
-    server.add_endpoint(update_uri, rover::hal::HttpMethod::POST, update_cb);
+    server->add_endpoint(update_uri, rover::hal::HttpMethod::POST, update_cb);
+
+    // std::move must come after pointer access
+    peripherals.push_back(std::move(peripheral));
 }
 
 std::string DeviceWebApp::render_page() const

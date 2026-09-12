@@ -7,8 +7,8 @@
 namespace rover::web
 {
 
-LedWeb::LedWeb(const std::string &name_, rover::hal::GpioInterface *led_)
-    : PeripheralInterface(name_), led(led_)
+LedWeb::LedWeb(const std::string &name_, std::unique_ptr<rover::hal::GpioInterface> led_)
+    : PeripheralInterface(name_), led(std::move(led_))
 {
     // Empty
 }

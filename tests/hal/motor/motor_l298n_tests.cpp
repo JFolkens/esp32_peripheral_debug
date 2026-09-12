@@ -7,79 +7,87 @@
 namespace rover::tests::hal
 {
 
-class MotorL298NTest : public ::testing::Test
+class MotorL298nTest : public ::testing::Test
 {
    protected:
-    std::unique_ptr<PwmMock> pwm;
-    std::unique_ptr<GpioMock> forward;
-    std::unique_ptr<GpioMock> reverse;
+    PwmMock *pwm_ptr;
+    GpioMock *forward_ptr;
+    GpioMock *reverse_ptr;
     std::unique_ptr<rover::hal::MotorInterface> motor;
 
     void SetUp() override
     {
-        pwm = std::make_unique<PwmMock>();
-        forward = std::make_unique<GpioMock>();
-        reverse = std::make_unique<GpioMock>();
-        motor = std::make_unique<rover::hal::MotorL298N>(*pwm, *forward, *reverse);
+        // Create mocks and save raw pointers for inspection
+        auto pwm = std::make_unique<PwmMock>();
+        auto forward = std::make_unique<GpioMock>();
+        auto reverse = std::make_unique<GpioMock>();
+
+        pwm_ptr = pwm.get();
+        forward_ptr = forward.get();
+        reverse_ptr = reverse.get();
+
+        // Transfer ownership to motor
+        motor = std::make_unique<rover::hal::MotorL298n>(std::move(forward), std::move(reverse),
+                                                         std::move(pwm));
     }
 };
 
-TEST_F(MotorL298NTest, PositiveSpeedDrivesForward)
+TEST_F(MotorL298nTest, PositiveSpeedDrivesForward)
 {
     motor->set_speed(0.5f);
 
-    EXPECT_TRUE(forward->get());
-    EXPECT_FALSE(reverse->get());
-    EXPECT_FLOAT_EQ(pwm->last_set_speed, 50.0f);
+    EXPECT_TRUE(forward_ptr->get());
+    EXPECT_FALSE(reverse_ptr->get());
+    EXPECT_FLOAT_EQ(pwm_ptr->last_set_speed, 50.0f);
     EXPECT_FLOAT_EQ(motor->get_speed(), 0.5f);
-    EXPECT_EQ(pwm->set_speed_call_count, 1);
+    EXPECT_EQ(pwm_ptr->set_speed_call_count, 1);
 }
 
-TEST_F(MotorL298NTest, ZeroSpeedUsesZeroPwm)
+TEST_F(MotorL298nTest, ZeroSpeedUsesZeroPwm)
 {
     motor->set_speed(0.0f);
 
-    EXPECT_FLOAT_EQ(pwm->last_set_speed, 0.0f);
+    EXPECT_FLOAT_EQ(pwm_ptr->last_set_speed, 0.0f);
     EXPECT_FLOAT_EQ(motor->get_speed(), 0.0f);
 }
 
-TEST_F(MotorL298NTest, NegativeSpeedDrivesReverseWithPositivePwm)
+TEST_F(MotorL298nTest, NegativeSpeedDrivesReverseWithPositivePwm)
 {
     motor->set_speed(-0.25f);
 
-    EXPECT_FALSE(forward->get());
-    EXPECT_TRUE(reverse->get());
-    EXPECT_FLOAT_EQ(pwm->last_set_speed, 25.0f);
+    EXPECT_FALSE(forward_ptr->get());
+    EXPECT_TRUE(reverse_ptr->get());
+    EXPECT_FLOAT_EQ(pwm_ptr->last_set_speed, 25.0f);
     EXPECT_FLOAT_EQ(motor->get_speed(), -0.25f);
-    EXPECT_EQ(pwm->set_speed_call_count, 1);
+    EXPECT_EQ(pwm_ptr->set_speed_call_count, 1);
 }
 
-TEST_F(MotorL298NTest, StopSetsHardBraking)
+TEST_F(MotorL298nTest, StopSetsHardBraking)
 {
     motor->stop();
     // Functionally, it does not matter if "stop" is implemented
     // as "both high" or "both low". Setting forward == backward
     // is hard braking for the L298N.
-    EXPECT_EQ(forward->get(), reverse->get());
+    EXPECT_EQ(forward_ptr->get(), reverse_ptr->get());
 }
 
-TEST_F(MotorL298NTest, RepeatedCommandsUpdateDirectionAndPwm)
+TEST_F(MotorL298nTest, RepeatedCommandsUpdateDirectionAndPwm)
 {
     motor->set_speed(1.0f);
-    EXPECT_TRUE(forward->get());
-    EXPECT_FALSE(reverse->get());
-    EXPECT_FLOAT_EQ(pwm->last_set_speed, 100.0f);
+    EXPECT_TRUE(forward_ptr->get());
+    EXPECT_FALSE(reverse_ptr->get());
+    EXPECT_FLOAT_EQ(pwm_ptr->last_set_speed, 100.0f);
 
     motor->set_speed(-1.0f);
-    EXPECT_FALSE(forward->get());
-    EXPECT_TRUE(reverse->get());
-    EXPECT_FLOAT_EQ(pwm->last_set_speed, 100.0f);
+    EXPECT_FALSE(forward_ptr->get());
+    EXPECT_TRUE(reverse_ptr->get());
+    EXPECT_FLOAT_EQ(pwm_ptr->last_set_speed, 100.0f);
 
     motor->set_speed(0.25f);
-    EXPECT_TRUE(forward->get());
-    EXPECT_FALSE(reverse->get());
-    EXPECT_FLOAT_EQ(pwm->last_set_speed, 25.0f);
-    EXPECT_EQ(pwm->set_speed_call_count, 3);
+    EXPECT_TRUE(forward_ptr->get());
+    EXPECT_FALSE(reverse_ptr->get());
+    EXPECT_FLOAT_EQ(pwm_ptr->last_set_speed, 25.0f);
+    EXPECT_EQ(pwm_ptr->set_speed_call_count, 3);
     EXPECT_FLOAT_EQ(motor->get_speed(), 0.25f);
 }
 
