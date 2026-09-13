@@ -31,4 +31,4 @@
         }
         sendValue(e.target.value);
     });
-};
+}

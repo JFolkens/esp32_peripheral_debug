@@ -49,4 +49,4 @@
             sendValue(e.target.value, off ? 0 : slider.value);
         });
     });
-};
+}

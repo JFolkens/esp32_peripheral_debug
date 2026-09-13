@@ -11,4 +11,4 @@
         button.textContent = isOn ? 'Turn OFF' : 'Turn ON';
         button.className = isOn ? 'button' : 'button button-off';
     });
-};
+}
