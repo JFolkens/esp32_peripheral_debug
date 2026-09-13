@@ -1,4 +1,4 @@
-(() => {
+(LED_NAME) => {
     const button = document.getElementById(LED_NAME + '_button');
     button.addEventListener('click', async () => {
         const action = button.dataset.action;
@@ -11,4 +11,4 @@
         button.textContent = isOn ? 'Turn OFF' : 'Turn ON';
         button.className = isOn ? 'button' : 'button button-off';
     });
-})();
+};

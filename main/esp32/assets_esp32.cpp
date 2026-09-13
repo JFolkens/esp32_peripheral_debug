@@ -34,6 +34,12 @@ std::string get_text_asset(const std::vector<std::string> &path)
     }
     const char *asset_start = reinterpret_cast<const char *>(embedded_assets[asset_idx].start);
     size_t asset_length = embedded_assets[asset_idx].end - embedded_assets[asset_idx].start;
+
+    // EMBED_TXTFILES will append terminator. We want the raw string
+    // Calling functions should append terminator themselves if they want one.
+    if (asset_length > 0 && asset_start[asset_length - 1] == '\0') {
+        --asset_length;
+    }
     return std::string(asset_start, asset_length);
 }
 

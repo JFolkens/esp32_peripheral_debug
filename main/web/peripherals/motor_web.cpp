@@ -55,8 +55,8 @@ std::string MotorWeb::html_control() const
        << " max=\"100\" value=\"" << speed_percent << "\"" << (is_off ? " disabled" : "") << ">\n"
        << "<span id=\"" << display_id << "\">" << speed_percent << "</span>\n"
        << "<script>\n"
-       << "const MOTOR_NAME = '" << name << "';\n"
-       << rover::hal::get_text_asset({"web", "assets", "motor_control.js"}) << "\n"
+       << "(" << rover::hal::get_text_asset({"web", "assets", "motor_control.js"}) << ")"
+       << "('" << name << "');\n"
        << "</script>\n";
 
     return ss.str();

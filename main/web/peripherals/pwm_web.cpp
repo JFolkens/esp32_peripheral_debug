@@ -51,8 +51,8 @@ std::string PwmWeb::html_control() const
        << "max=\"100\" value=\"" << speed << "\">\n"
        << "<span id=\"" << display_id << "\">" << speed << "</span>\n"
        << "<script>\n"
-       << "const PWM_NAME = '" << name << "';\n"
-       << rover::hal::get_text_asset({"web", "assets", "pwm_control.js"}) << "\n"
+       << "(" << rover::hal::get_text_asset({"web", "assets", "pwm_control.js"}) << ")"
+       << "('" << name << "');\n"
        << "</script>\n";
 
     return ss.str();

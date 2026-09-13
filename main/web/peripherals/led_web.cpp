@@ -37,8 +37,8 @@ std::string LedWeb::html_control() const
     ss << "<button type=\"button\" id=\"" << name << "_button\" class=\"" << class_name
        << "\" data-action=\"" << action << "\">" << label << "</button>\n"
        << "<script>\n"
-       << "const LED_NAME = '" << name << "';\n"
-       << rover::hal::get_text_asset({"web", "assets", "led_control.js"}) << "\n"
+       << "(" << rover::hal::get_text_asset({"web", "assets", "led_control.js"}) << ")"
+       << "('" << name << "');\n"
        << "</script>";
     return ss.str();
 }

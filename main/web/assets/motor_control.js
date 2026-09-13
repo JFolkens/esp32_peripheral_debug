@@ -1,4 +1,4 @@
-(() => {
+(MOTOR_NAME) => {
     const slider = document.getElementById(MOTOR_NAME + '_slider');
     const display = document.getElementById(MOTOR_NAME + '_display');
     const directions = document.querySelectorAll('input[name="' + MOTOR_NAME + '_direction"]');
@@ -49,4 +49,4 @@
             sendValue(e.target.value, off ? 0 : slider.value);
         });
     });
-})();
+};

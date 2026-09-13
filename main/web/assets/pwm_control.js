@@ -1,4 +1,4 @@
-(() => {
+(PWM_NAME) => {
     const slider = document.getElementById(PWM_NAME + '_slider');
     const display = document.getElementById(PWM_NAME + '_display');
 
@@ -31,4 +31,4 @@
         }
         sendValue(e.target.value);
     });
-})();
+};
