@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "../../hal/log/logging.h"
+#include "../web_assets.h"
 
 extern const uint8_t _binary_motor_control_js_start[];
 
@@ -55,7 +56,7 @@ std::string MotorWeb::html_control() const
        << "<span id=\"" << display_id << "\">" << speed_percent << "</span>\n"
        << "<script>\n"
        << "const MOTOR_NAME = '" << name << "';\n"
-       << (const char *)&_binary_motor_control_js_start << "\n"
+       << get_text_asset({"web", "assets", "motor_control.js"}) << "\n"
        << "</script>\n";
 
     return ss.str();

@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-extern const uint8_t _binary_styles_css_start[];
+#include "web_assets.h"
 
 namespace rover::web
 {
@@ -58,7 +58,7 @@ std::string DeviceWebApp::render_page() const
             <style>
 )raw";
 
-    html += reinterpret_cast<const char *>(_binary_styles_css_start);
+    html += get_text_asset({"web", "assets", "styles.css"});
 
     html +=
         R"raw(

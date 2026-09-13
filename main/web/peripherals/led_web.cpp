@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "../../hal/log/logging.h"
+#include "../web_assets.h"
 
 extern const uint8_t _binary_led_control_js_start[];
 
@@ -37,7 +38,7 @@ std::string LedWeb::html_control() const
        << "\" data-action=\"" << action << "\">" << label << "</button>\n"
        << "<script>\n"
        << "const LED_NAME = '" << name << "';\n"
-       << (const char *)&_binary_led_control_js_start << "\n"
+       << get_text_asset({"web", "assets", "led_control.js"}) << "\n"
        << "</script>";
     return ss.str();
 }
