@@ -73,7 +73,7 @@ esp_err_t esp32_uri_handler(httpd_req_t *req)
     // Convert the returned Response into ESP32 HttpServer update
     httpd_resp_set_status(req, HttpServerInterface::status_text(cpp_resp.status_code));
     httpd_resp_set_type(req, cpp_resp.content_type.c_str());
-    httpd_resp_send(req, cpp_resp.body.c_str(), HTTPD_RESP_USE_STRLEN);
+    httpd_resp_send(req, cpp_resp.body.c_str(), cpp_resp.body.length());
 
     return ESP_OK;
 }

@@ -2,7 +2,10 @@
 
 #include <sstream>
 
+#include "../../hal/assets.h"
 #include "../../hal/log/logging.h"
+
+extern const uint8_t _binary_led_control_js_start[];
 
 namespace rover::web
 {
@@ -23,7 +26,7 @@ std::string LedWeb::html_state() const
 
 std::string LedWeb::html_control() const
 {
-    // If we are on, show a b "Turn off". If we are off, show
+    // If we are on, show a button "Turn off". If we are off, show
     // a button "Turn on".
     bool is_on = led->get();
     std::string action = is_on ? "off" : "on";
@@ -34,22 +37,8 @@ std::string LedWeb::html_control() const
     ss << "<button type=\"button\" id=\"" << name << "_button\" class=\"" << class_name
        << "\" data-action=\"" << action << "\">" << label << "</button>\n"
        << "<script>\n"
-       << "(() => {\n"
-       << "const button = document.getElementById('" << name << "_button');\n"
-       << "button.addEventListener('click', async () => {\n"
-       << "    const action = button.dataset.action;\n"
-       << "    const response = await fetch('/" << name
-       << "/update?action=' + action, { method: 'POST' });\n"
-       << "    if (response.ok) {\n"
-       << "        document.getElementById('" << name << "_state').innerHTML =\n"
-       << "            await response.text();\n"
-       << "    }\n"
-       << "    const isOn = action === 'on';\n"
-       << "    button.dataset.action = isOn ? 'off' : 'on';\n"
-       << "    button.textContent = isOn ? 'Turn OFF' : 'Turn ON';\n"
-       << "    button.className = isOn ? 'button' : 'button button-off';\n"
-       << "});\n"
-       << "})();\n"
+       << "(" << rover::hal::get_text_asset({"web", "assets", "led_control.js"}) << ")"
+       << "('" << name << "');\n"
        << "</script>";
     return ss.str();
 }

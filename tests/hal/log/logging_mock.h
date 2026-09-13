@@ -25,4 +25,8 @@ void clear();
 const std::vector<Message> &messages();
 
 const Message *lastMessage();
+
+// Use log_error, log_warning, log_info
+// This is exposed only for use in logging.cpp
+void _log(Message::Level level, const char *tag, const char *format, va_list args);
 }  // namespace rover::tests::hal

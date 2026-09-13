@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include "../hal/assets.h"
+
 namespace rover::web
 {
 
@@ -54,11 +56,12 @@ std::string DeviceWebApp::render_page() const
         <head>
             <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
             <style>
-                html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center; }
-                body { margin: 20px; }
-                .button { background-color: #4CAF50; border: none; color: white; padding: 16px 16px; text-decoration: none; font-size: 24px; margin: 2px; cursor: pointer; }
-                .button-off { background-color: #555555; }
-                .card { margin: 20px auto; padding: 10px; border: 1px solid #ddd; border-radius: 8px; max-width: 640px; }
+)raw";
+
+    html += rover::hal::get_text_asset({"web", "assets", "styles.css"});
+
+    html +=
+        R"raw(
             </style>
         </head>
         <body>

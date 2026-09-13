@@ -2,7 +2,10 @@
 
 #include <sstream>
 
+#include "../../hal/assets.h"
 #include "../../hal/log/logging.h"
+
+extern const uint8_t _binary_pwm_control_js_start[];
 
 namespace rover::web
 {
@@ -38,55 +41,18 @@ std::string PwmWeb::html_state() const
 
 std::string PwmWeb::html_control() const
 {
-    // bool is_on = pwm->is_on();
-    // // TODO: Color based on is_on
     float speed = pwm->get_speed();
 
     std::string slider_id = name + "_slider";
     std::string display_id = name + "_display";
-
-    // Fix: Dropping commands when user interacts fast
-    // We will miss callbacks unless we disable while processing
-    const int user_throttle_ms = 300;
 
     std::stringstream ss;
     ss << "<input type=\"range\" id=\"" << slider_id << "\" min=\"0\""
        << "max=\"100\" value=\"" << speed << "\">\n"
        << "<span id=\"" << display_id << "\">" << speed << "</span>\n"
        << "<script>\n"
-       << "(() => {\n"
-       << "const slider = document.getElementById('" << slider_id << "');\n"
-       << "const display = document.getElementById('" << display_id << "');\n"
-       << "\n"
-       << "let debounceTimer = null;\n"
-       << "\n"
-       << "async function sendValue(val) {\n"
-       << "    const response = await fetch(\n"
-       << "        `/" << name << "/update?speed=${encodeURIComponent(val)}`,\n"
-       << "          { method: 'POST' });\n"
-       << "    if (response.ok) {\n"
-       << "        document.getElementById('" << name << "_state').innerHTML =\n"
-       << "            await response.text();\n"
-       << "    }\n"
-       << "}\n"
-       << "\n"
-       << "slider.addEventListener('input', (e) => {\n"
-       << "    const val = e.target.value;\n"
-       << "    display.textContent = val;\n"
-       << "    if (debounceTimer) clearTimeout(debounceTimer);\n"
-       << "    debounceTimer = setTimeout(() => {\n"
-       << "        debounceTimer = null;\n"
-       << "        sendValue(val);\n"
-       << "    }, " << user_throttle_ms << ");\n"
-       << "});\n"
-       << "\n"
-       << "slider.addEventListener('change', (e) => {\n"
-       << "    if (debounceTimer) {\n"
-       << "          clearTimeout(debounceTimer); debounceTimer = null;\n"
-       << "    }\n"
-       << "    sendValue(e.target.value);\n"
-       << "});\n"
-       << "})();\n"
+       << "(" << rover::hal::get_text_asset({"web", "assets", "pwm_control.js"}) << ")"
+       << "('" << name << "');\n"
        << "</script>\n";
 
     return ss.str();
@@ -96,7 +62,7 @@ void PwmWeb::handle_update(const std::map<std::string, std::string> &parameters)
 {
     const auto speed_it = parameters.find("speed");
     if (speed_it == parameters.end()) {
-        rover::hal::log_info("PwmWeb", "PWM updated but no speed parameter given");
+        rover::hal::log_error("PwmWeb", "PWM updated but no speed parameter given");
         return;
     }
 

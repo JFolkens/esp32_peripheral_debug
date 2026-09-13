@@ -9,7 +9,7 @@ namespace rover::tests::hal
 {
 std::vector<Message> g_messages;
 
-void log(Message::Level level, const char *tag, const char *format, va_list args)
+void _log(Message::Level level, const char *tag, const char *format, va_list args)
 {
     char buffer[256];
 
@@ -37,44 +37,3 @@ const Message *lastMessage()
     return &g_messages.back();
 }
 }  // namespace rover::tests::hal
-
-using namespace rover::tests::hal;
-/**
- * Unit test implementations of logging functions. Must be in rover::hal
- * because that is where function definitions live. Unit tests can use
- * std::cout; embedded devices have their own implementations.
- */
-namespace rover::hal
-{
-
-void log_error(const char *tag, const char *message, ...)
-{
-    va_list args;
-    va_start(args, message);
-
-    log(Message::Level::Error, tag, message, args);
-
-    va_end(args);
-}
-
-void log_warning(const char *tag, const char *message, ...)
-{
-    va_list args;
-    va_start(args, message);
-
-    log(Message::Level::Warning, tag, message, args);
-
-    va_end(args);
-}
-
-void log_info(const char *tag, const char *message, ...)
-{
-    va_list args;
-    va_start(args, message);
-
-    log(Message::Level::Info, tag, message, args);
-
-    va_end(args);
-}
-
-}  // namespace rover::hal
