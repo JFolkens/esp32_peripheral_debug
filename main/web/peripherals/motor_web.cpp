@@ -66,8 +66,10 @@ void MotorWeb::handle_update(const std::map<std::string, std::string> &parameter
 {
     const auto mode_it = parameters.find("mode");
     const auto speed_it = parameters.find("speed");
-    if (mode_it == parameters.end() || speed_it == parameters.end())
+    if (mode_it == parameters.end() || speed_it == parameters.end()) {
+        rover::hal::log_error("MotorWeb", "mode and speed must be provided");
         return;
+    }
 
     const std::string &mode = mode_it->second;
 

@@ -1,3 +1,9 @@
+#[[
+Brief: Helper function for auto-generating the code at esp32/assets_esp32.h
+
+Arguments:
+    ASSET_FILES - (multi-valued) List of asset files in project.
+]]
 function(generate_asset_header)
     # Parse multi value arg for ASSET_FILES
     set(multi_value_args ASSET_FILES)

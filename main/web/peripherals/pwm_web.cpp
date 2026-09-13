@@ -62,7 +62,7 @@ void PwmWeb::handle_update(const std::map<std::string, std::string> &parameters)
 {
     const auto speed_it = parameters.find("speed");
     if (speed_it == parameters.end()) {
-        rover::hal::log_info("PwmWeb", "PWM updated but no speed parameter given");
+        rover::hal::log_error("PwmWeb", "PWM updated but no speed parameter given");
         return;
     }
 
