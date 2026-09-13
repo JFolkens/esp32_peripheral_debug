@@ -9,33 +9,14 @@ file(GLOB_RECURSE
 )
 
 # Check asset files are found by CMAKE
-# IMPORTANT: File names must be unique, not just paths.
+# IMPORTANT: File names must be unique, not just paths. See helper function.
 message(STATUS "ASSET_FILES = ${ASSET_FILES}")
 
-#[[
-If your assets are printed by CMAKE but not being linked, try:
-
-xtensa-esp32-elf-nm -C .\build\esp-idf\main\libmain.a | Select-String "binary"
-
-ESP-IDF documentation claims the generated symbol will use full path,
-but the `nm` command says only file name is used.
-NOTE: asset file names must be unique.
-]]
-#[[
-set(GENERATED_WEB_ASSETS_H "${CMAKE_CURRENT_BINARY_DIR}/esp32/web_assets_esp32.h")
-foreach(ASSET_FILE ${ASSET_FILES})
-    # Form the linked symbol name. File name, with special characters as "_"
-    get_filename_component(ASSET_NAME "${ASSET_FILE}" NAME)
-    string(REGEX REPLACE "[^A-Za-z0-9_]" "_" SYMBOL_BASE "${ASSET_NAME}")
-
-    # Write out header file table
-    file(APPEND "${GENERATED_WEB_ASSETS_H}"
-"extern const unsigned char _binary_${SYMBOL_BASE}_start[];
-extern const unsigned char _binary_${SYMBOL_BASE}_end[];
-"
-    )
-endforeach()
-]]
+# Populate esp32/assets_esp32.h with links to asset files
+set(GENERATED_ASSETS_H "${CMAKE_CURRENT_BINARY_DIR}/esp32/assets_esp32.h")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+include(GenerateAssetHeader)
+generate_asset_header(${ASSET_FILES} ${GENERATED_ASSETS_H})
 
 # Register application
 idf_component_register(
