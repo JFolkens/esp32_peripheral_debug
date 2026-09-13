@@ -2,10 +2,10 @@
 
 #include <sstream>
 
+extern const uint8_t _binary_styles_css_start[];
+
 namespace rover::web
 {
-
-const uint8_t styles_css[] asm("_binary_web_assets_styles_css_start");
 
 DeviceWebApp::DeviceWebApp(std::unique_ptr<rover::hal::HttpServerInterface> server_)
     : server(std::move(server_))
@@ -58,7 +58,7 @@ std::string DeviceWebApp::render_page() const
             <style>
 )raw";
 
-    html += (const char *)styles_css;
+    html += reinterpret_cast<const char *>(_binary_styles_css_start);
 
     html +=
         R"raw(
