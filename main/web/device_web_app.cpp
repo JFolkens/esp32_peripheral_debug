@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "web_assets.h"
+#include "../hal/assets.h"
 
 namespace rover::web
 {
@@ -58,7 +58,7 @@ std::string DeviceWebApp::render_page() const
             <style>
 )raw";
 
-    html += get_text_asset({"web", "assets", "styles.css"});
+    html += rover::hal::get_text_asset({"web", "assets", "styles.css"});
 
     html +=
         R"raw(

@@ -2,8 +2,8 @@
 
 #include <sstream>
 
+#include "../../hal/assets.h"
 #include "../../hal/log/logging.h"
-#include "../web_assets.h"
 
 extern const uint8_t _binary_pwm_control_js_start[];
 
@@ -52,7 +52,7 @@ std::string PwmWeb::html_control() const
        << "<span id=\"" << display_id << "\">" << speed << "</span>\n"
        << "<script>\n"
        << "const PWM_NAME = '" << name << "';\n"
-       << get_text_asset({"web", "assets", "pwm_control.js"}) << "\n"
+       << rover::hal::get_text_asset({"web", "assets", "pwm_control.js"}) << "\n"
        << "</script>\n";
 
     return ss.str();

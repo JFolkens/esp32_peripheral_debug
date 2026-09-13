@@ -3,8 +3,8 @@
 #include <cmath>
 #include <sstream>
 
+#include "../../hal/assets.h"
 #include "../../hal/log/logging.h"
-#include "../web_assets.h"
 
 extern const uint8_t _binary_motor_control_js_start[];
 
@@ -56,7 +56,7 @@ std::string MotorWeb::html_control() const
        << "<span id=\"" << display_id << "\">" << speed_percent << "</span>\n"
        << "<script>\n"
        << "const MOTOR_NAME = '" << name << "';\n"
-       << get_text_asset({"web", "assets", "motor_control.js"}) << "\n"
+       << rover::hal::get_text_asset({"web", "assets", "motor_control.js"}) << "\n"
        << "</script>\n";
 
     return ss.str();

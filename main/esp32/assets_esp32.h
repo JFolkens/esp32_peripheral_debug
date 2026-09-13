@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-namespace rover::web
+namespace rover::hal
 {
 
 struct EmbeddedAsset
@@ -12,7 +12,7 @@ struct EmbeddedAsset
     const unsigned char *end;
 };
 
-}  // namespace rover::web
+}  // namespace rover::hal
 
 /**
  * Do not edit - the rest of this file is auto-generated
@@ -33,7 +33,7 @@ extern const unsigned char _binary_pwm_control_js_end[];
 extern const unsigned char _binary_styles_css_start[];
 extern const unsigned char _binary_styles_css_end[];
 
-namespace rover::web
+namespace rover::hal
 {
 inline constexpr EmbeddedAsset embedded_assets[] = {
     {"motor_control.js", _binary_motor_control_js_start, _binary_motor_control_js_end},
@@ -44,4 +44,4 @@ inline constexpr EmbeddedAsset embedded_assets[] = {
 
 inline constexpr std::size_t embedded_asset_count =
     sizeof(embedded_assets) / sizeof(embedded_assets[0]);
-}  // namespace rover::web
+}  // namespace rover::hal

@@ -2,8 +2,8 @@
 
 #include <sstream>
 
+#include "../../hal/assets.h"
 #include "../../hal/log/logging.h"
-#include "../web_assets.h"
 
 extern const uint8_t _binary_led_control_js_start[];
 
@@ -38,7 +38,7 @@ std::string LedWeb::html_control() const
        << "\" data-action=\"" << action << "\">" << label << "</button>\n"
        << "<script>\n"
        << "const LED_NAME = '" << name << "';\n"
-       << get_text_asset({"web", "assets", "led_control.js"}) << "\n"
+       << rover::hal::get_text_asset({"web", "assets", "led_control.js"}) << "\n"
        << "</script>";
     return ss.str();
 }

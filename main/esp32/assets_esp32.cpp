@@ -1,12 +1,12 @@
-#include "web_assets_esp32.h"
+#include "assets_esp32.h"
 
 #include <string>
 #include <vector>
 
+#include "../hal/assets.h"
 #include "../hal/log/logging.h"
-#include "../web/web_assets.h"
 
-namespace rover::web
+namespace rover::hal
 {
 
 std::string get_text_asset(const std::vector<std::string> &path)
@@ -37,4 +37,4 @@ std::string get_text_asset(const std::vector<std::string> &path)
     return std::string(asset_start, asset_length);
 }
 
-}  // namespace rover::web
+}  // namespace rover::hal

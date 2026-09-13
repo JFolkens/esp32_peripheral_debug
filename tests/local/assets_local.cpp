@@ -1,7 +1,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "main/web/web_assets.h"
+#include "main/hal/assets.h"
 
 /**
  * Non-embedded implementation of loading web asset files.
@@ -26,7 +26,7 @@ std::string join_with(const std::vector<std::string> strs, std::string delimeter
 
 }  // namespace
 
-namespace rover::web
+namespace rover::hal
 {
 
 std::string get_text_asset(const std::vector<std::string> &path)
@@ -41,4 +41,4 @@ std::string get_text_asset(const std::vector<std::string> &path)
     return buffer.str();
 }
 
-}  // namespace rover::web
+}  // namespace rover::hal
