@@ -21,4 +21,5 @@ class MotorWeb : public PeripheralInterface
    private:
     std::unique_ptr<rover::hal::MotorInterface> motor;
 };
-}  // namespace  rover::web
+
+}  // namespace rover::web

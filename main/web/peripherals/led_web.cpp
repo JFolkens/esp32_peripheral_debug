@@ -5,8 +5,6 @@
 #include "../../hal/assets.h"
 #include "../../hal/log/logging.h"
 
-extern const uint8_t _binary_led_control_js_start[];
-
 namespace rover::web
 {
 

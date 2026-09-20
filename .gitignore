@@ -1,5 +1,5 @@
 **/wifi_password.h
-
+.pi/
 build/**
 tests/.build/**
 tests/.deps/**

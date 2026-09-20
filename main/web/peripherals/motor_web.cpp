@@ -6,8 +6,6 @@
 #include "../../hal/assets.h"
 #include "../../hal/log/logging.h"
 
-extern const uint8_t _binary_motor_control_js_start[];
-
 namespace rover::web
 {
 
@@ -19,7 +17,7 @@ MotorWeb::MotorWeb(const std::string &name_, std::unique_ptr<rover::hal::MotorIn
 
 std::string MotorWeb::html_state() const
 {
-    // Motor interface is [- 1]. HTML displays percentage.
+    // Motor interface is [-1, 1]. HTML displays percentage.
     float speed_percent = motor->get_speed() * 100;
     bool is_on = std::abs(speed_percent) > 0.001;
 

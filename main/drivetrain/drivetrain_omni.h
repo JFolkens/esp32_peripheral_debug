@@ -20,9 +20,9 @@ namespace rover
  */
 struct OmniSpeed
 {
-    double speed_x = 0.0;    // Forward/backward speed on interval [-1, 1]
-    double speed_y = 0.0;    // Strafe left/right speed on interval [-1, 1]
-    double omega_cw = 0.0;   // Angular/rotational velocity. Positive is clockwise.
+    double x = 0.0;     // Forward/backward speed on interval [-1, 1]
+    double y = 0.0;     // Strafe left/right speed on interval [-1, 1]
+    double a_cw = 0.0;  // Angular/rotational speed on interval [-1, 1]. Positive is clockwise.
 };
 
 /**
@@ -30,12 +30,12 @@ struct OmniSpeed
  */
 struct OmniPlatform
 {
-    double width_m = 0.0;    // Distance between left and right wheel centers (meters).
-    double length_m = 0.0;   // Distance between front and back wheels (meters).
-    double front_left_comp = 1.0;    // Compensation factor on [0, 1] for front left motor.
-    double front_right_comp = 1.0;
-    double back_right_comp = 1.0;
-    double back_left_comp = 1.0;
+    double width_m = 0.0;   // Distance between left and right wheel centers (meters).
+    double length_m = 0.0;  // Distance between front and back wheels (meters).
+    double comp_fl = 1.0;   // Compensation factor on [0, 1] for front left motor.
+    double comp_fr = 1.0;
+    double comp_br = 1.0;
+    double comp_bl = 1.0;
 };
 
 /**
@@ -55,10 +55,19 @@ class DrivetrainOmni
     virtual ~DrivetrainOmni() = default;
 
     /**
-     * @brief Set motor speed
+     * @brief Set drivetrain speeds.
      * @param speeds Target linear and angular speeds.
      */
     void drive(const OmniSpeed &speeds);
+
+    /**
+     * @brief Get drivetrain speeds.
+     *
+     * Get current (expected) drivetrain speeds. This is based on
+     * the latest update to motors. There are no encoders, so this
+     * is a rough estimate using OmniPlatform wheel scaling constants.
+     */
+    OmniSpeed get_speeds();
 
     /**
      * @brief Stop all motors immediately.
@@ -71,6 +80,8 @@ class DrivetrainOmni
     std::unique_ptr<rover::hal::MotorInterface> _back_right;
     std::unique_ptr<rover::hal::MotorInterface> _back_left;
     const OmniPlatform &_platform;
+    double _radius;
+    OmniSpeed _state;
 };
 
 }  // namespace rover
