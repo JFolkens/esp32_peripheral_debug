@@ -16,18 +16,12 @@ extern "C" {
 #include <memory>
 #include <string>
 
-#include "esp32/gpio_esp32.h"
 #include "esp32/http_server_esp32.h"
 #include "esp32/motor_l298n_esp32.h"
-#include "esp32/pwm_esp32.h"
-#include "hal/gpio/gpio_interface.h"
 #include "hal/motor/motor_interface.h"
 #include "hal/motor/motor_l298n.h"
-#include "hal/pwm/pwm_interface.h"
 #include "web/device_web_app.h"
-#include "web/peripherals/led_web.h"
 #include "web/peripherals/motor_web.h"
-#include "web/peripherals/pwm_web.h"
 
 /*
  The WIFI name is stored in KConfig.projbuild but true password
