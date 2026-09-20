@@ -11,7 +11,7 @@ namespace rover::web
 
 DrivetrainOmniWeb::DrivetrainOmniWeb(const std::string &name_,
                                      std::unique_ptr<rover::DrivetrainOmni> drivetrain)
-    : PeripheralInterface(name_), _drivetrain(drivetrain)
+    : PeripheralInterface(name_), _drivetrain(std::move(drivetrain))
 {
     // Empty
 }
@@ -21,6 +21,7 @@ std::string DrivetrainOmniWeb::html_state() const
     // Drivetrain interface is [-1, 1]. HTML displays percentage.
 
     // TODO
+    return "";
 }
 
 std::string DrivetrainOmniWeb::html_control() const
@@ -34,7 +35,7 @@ std::string DrivetrainOmniWeb::html_control() const
 
     std::stringstream ss;
     ss << "<button type=\"button\" id=\"" << stop_button << "\" class=\"button\""
-       << "\" data-action=\"stop\">STOP</button>\n"
+       << ">STOP</button>\n"
        << "<label><input type=\"range\" id=\"" << y_speed << "\" min=\"-100\""
        << " max=\"100\" value=\"" << current_speed.y * 100 << "\">Y</label>\n"
        << "<label><input type=\"range\" id=\"" << x_speed << "\" min=\"-100\""

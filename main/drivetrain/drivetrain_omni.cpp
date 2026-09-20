@@ -19,7 +19,7 @@ DrivetrainOmni::DrivetrainOmni(std::unique_ptr<rover::hal::MotorInterface> front
       _back_left(std::move(back_left)),
       _platform(platform)
 {
-    double _radius =
+    _radius =
         std::sqrt(std::pow(_platform.width_m / 2.0, 2) + std::pow(_platform.length_m / 2.0, 2));
 
     // Initialize hardware to speed=0
@@ -48,10 +48,10 @@ void DrivetrainOmni::drive(const OmniSpeed &speeds)
     }
 
     // Set motor speeds
-    _front_left->set_speed(fl);
-    _front_right->set_speed(fr);
-    _back_right->set_speed(br);
-    _back_left->set_speed(bl);
+    _front_left->set_speed(static_cast<float>(fl));
+    _front_right->set_speed(static_cast<float>(fr));
+    _back_right->set_speed(static_cast<float>(br));
+    _back_left->set_speed(static_cast<float>(bl));
 
     // Compute our current speeds.
     // By computing instead of using input OmniSpeed, we show values

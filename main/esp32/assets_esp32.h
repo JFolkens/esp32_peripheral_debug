@@ -12,6 +12,8 @@
  */
 
 // <----- BEGIN EXTERN DECLARATION BLOCK ----->
+extern const unsigned char _binary_drivetrain_omni_control_js_start[];
+extern const unsigned char _binary_drivetrain_omni_control_js_end[];
 extern const unsigned char _binary_led_control_js_start[];
 extern const unsigned char _binary_led_control_js_end[];
 extern const unsigned char _binary_motor_control_js_start[];
@@ -34,6 +36,8 @@ struct EmbeddedAsset
 
 inline constexpr EmbeddedAsset embedded_assets[] = {
     // <----- BEGIN EMBEDDED ASSETS BLOCK ----->
+    {"drivetrain_omni_control.js", _binary_drivetrain_omni_control_js_start,
+     _binary_drivetrain_omni_control_js_end},
     {"led_control.js", _binary_led_control_js_start, _binary_led_control_js_end},
     {"motor_control.js", _binary_motor_control_js_start, _binary_motor_control_js_end},
     {"pwm_control.js", _binary_pwm_control_js_start, _binary_pwm_control_js_end},
