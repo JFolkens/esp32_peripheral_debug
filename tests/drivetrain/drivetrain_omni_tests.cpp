@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "main/drivetrain/drivetrain_omni.h"
 #include "../../hal/motor/motor_mock.h"
+#include "main/drivetrain/drivetrain_omni.h"
 
 namespace rover::tests::drivetrain
 {
@@ -16,10 +16,10 @@ class DrivetrainOmniTest : public ::testing::Test
     std::unique_ptr<rover::hal::MotorInterface> br_mock;
     std::unique_ptr<rover::hal::MotorInterface> bl_mock;
 
-    rover::hal::MotorMock* fl_ptr;
-    rover::hal::MotorMock* fr_ptr;
-    rover::hal::MotorMock* br_ptr;
-    rover::hal::MotorMock* bl_ptr;
+    rover::hal::MotorMock *fl_ptr;
+    rover::hal::MotorMock *fr_ptr;
+    rover::hal::MotorMock *br_ptr;
+    rover::hal::MotorMock *bl_ptr;
 
     std::unique_ptr<DrivetrainOmni> drivetrain;
     rover::OmniPlatform platform;
@@ -43,13 +43,9 @@ class DrivetrainOmniTest : public ::testing::Test
         platform.comp_br = 1.0;
         platform.comp_bl = 1.0;
 
-        drivetrain = std::make_unique<DrivetrainOmni>(
-            std::move(fl_mock),
-            std::move(fr_mock),
-            std::move(br_mock),
-            std::move(bl_mock),
-            platform
-        );
+        drivetrain =
+            std::make_unique<DrivetrainOmni>(std::move(fl_mock), std::move(fr_mock),
+                                             std::move(br_mock), std::move(bl_mock), platform);
     }
 };
 
@@ -121,7 +117,7 @@ TEST_F(DrivetrainOmniTest, GetSpeedsReturnsCorrectValues)
 {
     // Set a known state
     drivetrain->drive({1.0, 0.0, 0.0});
-    
+
     auto speeds = drivetrain->get_speeds();
     // fl=1, fr=1, br=1, bl=1
     // x = (1+1+1+1)/4 = 1

@@ -16,12 +16,13 @@ extern "C" {
 #include <memory>
 #include <string>
 
+#include "drivetrain/drivetrain_omni.h"
 #include "esp32/http_server_esp32.h"
 #include "esp32/motor_l298n_esp32.h"
 #include "hal/motor/motor_interface.h"
 #include "hal/motor/motor_l298n.h"
 #include "web/device_web_app.h"
-#include "web/peripherals/motor_web.h"
+#include "web/peripherals/drivetrain_omni_web.h"
 
 /*
  The WIFI name is stored in KConfig.projbuild but true password
@@ -69,20 +70,30 @@ void app_main()
     auto back_left = std::unique_ptr<MotorInterface>(
         MotorL298nEsp32(GPIO_NUM_33, GPIO_NUM_25, GPIO_NUM_32, LEDC_CHANNEL_3, LEDC_TIMER_3));
 
+    /* --- Drivetrain --- */
+    rover::OmniPlatform platform;
+    platform.width_m = 0.02;
+    platform.length_m = 0.02;
+    auto drivetrain = std::make_unique<rover::DrivetrainOmni>(
+        std::move(front_left), std::move(front_right), std::move(back_right), std::move(back_left),
+        platform);
+
     /* --- Html rendering application ---- */
     auto debug_server = std::make_unique<HttpServerEsp32>(CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
     app = std::make_unique<DeviceWebApp>(std::move(debug_server));
 
     /* --- Add peripherals to webpage ---- */
-    auto front_left_web = std::make_unique<MotorWeb>("front_left", std::move(front_left));
-    auto front_right_web = std::make_unique<MotorWeb>("front_right", std::move(front_right));
-    auto back_right_web = std::make_unique<MotorWeb>("back_right", std::move(back_right));
-    auto back_left_web = std::make_unique<MotorWeb>("back_left", std::move(back_left));
+    auto drivetrain_web = std::make_unique<DrivetrainOmniWeb>("drivetrain", std::move(drivetrain));
+    // auto front_left_web = std::make_unique<MotorWeb>("front_left", std::move(front_left));
+    // auto front_right_web = std::make_unique<MotorWeb>("front_right", std::move(front_right));
+    // auto back_right_web = std::make_unique<MotorWeb>("back_right", std::move(back_right));
+    // auto back_left_web = std::make_unique<MotorWeb>("back_left", std::move(back_left));
 
-    app->add_peripheral(std::move(front_left_web));
-    app->add_peripheral(std::move(front_right_web));
-    app->add_peripheral(std::move(back_right_web));
-    app->add_peripheral(std::move(back_left_web));
+    app->add_peripheral(std::move(drivetrain_web));
+    // app->add_peripheral(std::move(front_left_web));
+    // app->add_peripheral(std::move(front_right_web));
+    // app->add_peripheral(std::move(back_right_web));
+    // app->add_peripheral(std::move(back_left_web));
 }
 
 }  // extern "C"
