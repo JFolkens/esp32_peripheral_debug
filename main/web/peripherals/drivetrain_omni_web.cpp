@@ -49,4 +49,28 @@ std::string DrivetrainOmniWeb::html_control() const
 
     return ss.str();
 }
+
+void DrivetrainOmniWeb::handle_update(const std::map<std::string, std::string> &parameters)
+{
+    // Command can be either 1) STOP or 2) Change Speed
+    const auto stop_it = parameters.find("stop");
+    if (stop_it != parameters.end()) {
+        _drivetrain->stop();
+        return;
+    }
+
+    const auto x_it = parameters.find("x");
+    const auto y_it = parameters.find("y");
+    const auto a_it = parameters.find("a");
+
+    if (x_it == parameters.end() || y_it == parameters.end() || a_it == parameters.end()) {
+        rover::hal::log_error("DrivetrainOmniWeb", "Omni speed requires x/y/a components");
+        return;
+    }
+
+    OmniSpeed speed_update;
+    speed_update.x = std::stof(x_it->second) / 100.0f;
+    speed_update.y = std::stof(y_it->second) / 100.0f;
+    speed_update.a_cw = std::stof(a_it->second) / 100.0f;
+}
 }  // namespace rover::web

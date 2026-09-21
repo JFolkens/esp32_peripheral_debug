@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "../../hal/motor/motor_mock.h"
+#include "../hal/motor/motor_mock.h"
 #include "main/drivetrain/drivetrain_omni.h"
 
 namespace rover::tests::drivetrain
@@ -11,25 +11,20 @@ namespace rover::tests::drivetrain
 class DrivetrainOmniTest : public ::testing::Test
 {
    protected:
-    std::unique_ptr<rover::hal::MotorInterface> fl_mock;
-    std::unique_ptr<rover::hal::MotorInterface> fr_mock;
-    std::unique_ptr<rover::hal::MotorInterface> br_mock;
-    std::unique_ptr<rover::hal::MotorInterface> bl_mock;
-
-    rover::hal::MotorMock *fl_ptr;
-    rover::hal::MotorMock *fr_ptr;
-    rover::hal::MotorMock *br_ptr;
-    rover::hal::MotorMock *bl_ptr;
+    rover::tests::hal::MotorMock *fl_ptr;
+    rover::tests::hal::MotorMock *fr_ptr;
+    rover::tests::hal::MotorMock *br_ptr;
+    rover::tests::hal::MotorMock *bl_ptr;
 
     std::unique_ptr<DrivetrainOmni> drivetrain;
     rover::OmniPlatform platform;
 
     void SetUp() override
     {
-        fl_mock = std::make_unique<rover::hal::MotorMock>();
-        fr_mock = std::make_unique<rover::hal::MotorMock>();
-        br_mock = std::make_unique<rover::hal::MotorMock>();
-        bl_mock = std::make_unique<rover::hal::MotorMock>();
+        auto fl_mock = std::make_unique<rover::tests::hal::MotorMock>();
+        auto fr_mock = std::make_unique<rover::tests::hal::MotorMock>();
+        auto br_mock = std::make_unique<rover::tests::hal::MotorMock>();
+        auto bl_mock = std::make_unique<rover::tests::hal::MotorMock>();
 
         fl_ptr = fl_mock.get();
         fr_ptr = fr_mock.get();
@@ -123,9 +118,9 @@ TEST_F(DrivetrainOmniTest, GetSpeedsReturnsCorrectValues)
     // x = (1+1+1+1)/4 = 1
     // y = (-1+1-1+1)/4 = 0
     // a_cw = (-1+1+1-1)/4 = 0
-    EXPECT_FLOAT_EQ(speeds.x, 1.0);
-    EXPECT_FLOAT_EQ(speeds.y, 0.0);
-    EXPECT_FLOAT_EQ(speeds.a_cw, 0.0);
+    EXPECT_FLOAT_EQ(speeds.x, 1.0f);
+    EXPECT_FLOAT_EQ(speeds.y, 0.0f);
+    EXPECT_FLOAT_EQ(speeds.a_cw, 0.0f);
 }
 
 }  // namespace rover::tests::drivetrain

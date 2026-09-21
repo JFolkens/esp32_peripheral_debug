@@ -84,16 +84,8 @@ void app_main()
 
     /* --- Add peripherals to webpage ---- */
     auto drivetrain_web = std::make_unique<DrivetrainOmniWeb>("drivetrain", std::move(drivetrain));
-    // auto front_left_web = std::make_unique<MotorWeb>("front_left", std::move(front_left));
-    // auto front_right_web = std::make_unique<MotorWeb>("front_right", std::move(front_right));
-    // auto back_right_web = std::make_unique<MotorWeb>("back_right", std::move(back_right));
-    // auto back_left_web = std::make_unique<MotorWeb>("back_left", std::move(back_left));
 
     app->add_peripheral(std::move(drivetrain_web));
-    // app->add_peripheral(std::move(front_left_web));
-    // app->add_peripheral(std::move(front_right_web));
-    // app->add_peripheral(std::move(back_right_web));
-    // app->add_peripheral(std::move(back_left_web));
 }
 
 }  // extern "C"
