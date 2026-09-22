@@ -34,17 +34,10 @@ void DrivetrainOmni::drive(const OmniSpeed &speeds)
     rover::hal::log_info("DrivetrainOmni", "Setting speed to x=%f, y=%f, a_cw=%f", speeds.x,
                          speeds.y, speeds.a_cw);
     // Compute raw values
-    // TODO: Memory handling of _platform is incorrect. Constructor is not copying,
-    // somehow _platform is going out of scope and becoming garbage.
-    // double fl = _platform.comp_fl * (speeds.x + speeds.y + speeds.a_cw);
-    // double fr = _platform.comp_fr * (speeds.x - speeds.y - speeds.a_cw);
-    // double br = _platform.comp_br * (speeds.x + speeds.y - speeds.a_cw);
-    // double bl = _platform.comp_bl * (speeds.x - speeds.y + speeds.a_cw);
-
-    double fl = (speeds.x + speeds.y + speeds.a_cw);
-    double fr = (speeds.x - speeds.y - speeds.a_cw);
-    double br = (speeds.x + speeds.y - speeds.a_cw);
-    double bl = (speeds.x - speeds.y + speeds.a_cw);
+    double fl = _platform.comp_fl * (speeds.x + speeds.y + speeds.a_cw);
+    double fr = _platform.comp_fr * (speeds.x - speeds.y - speeds.a_cw);
+    double br = _platform.comp_br * (speeds.x + speeds.y - speeds.a_cw);
+    double bl = _platform.comp_bl * (speeds.x - speeds.y + speeds.a_cw);
 
     rover::hal::log_info("DrivetrainOmni", "Computed wheel speeds as fl=%f, fr=%f, br=%f, bl=%f",
                          fl, fr, br, bl);

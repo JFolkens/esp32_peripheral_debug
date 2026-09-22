@@ -79,7 +79,8 @@ class DrivetrainOmni
     std::unique_ptr<rover::hal::MotorInterface> _front_right;
     std::unique_ptr<rover::hal::MotorInterface> _back_right;
     std::unique_ptr<rover::hal::MotorInterface> _back_left;
-    const OmniPlatform &_platform;
+    OmniPlatform _platform;
+
     double _radius;
     OmniSpeed _state;
 };
