@@ -18,11 +18,10 @@
     let debounceTimer = null;
     const USER_THROTTLE_MS = 300;
 
-    async function sendValue() {
-        const x = x_speed.value;
+    async function sendValue(x, y, a) {
         const response = await fetch(
-            '/' + DRIVETRAIN_NAME + '/update?x=' + encodeURIComponent(x_speed.value)
-            + '&y=' + encodeURIComponent(value) + '&a=' + encodeURIComponent(a_speed.value),
+            '/' + DRIVETRAIN_NAME + '/update?x=' + encodeURIComponent(x)
+            + '&y=' + encodeURIComponent(y) + '&a=' + encodeURIComponent(a),
             { method: 'POST' });
         if (response.ok) {
             document.getElementById(DRIVETRAIN_NAME + '_state').innerHTML = await response.text();
@@ -34,7 +33,7 @@
             if (debounceTimer) clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 debounceTimer = null;
-                sendValue();
+                sendValue(y_speed.value, x_speed.value, a_speed.value);
             }, USER_THROTTLE_MS);
         });
 
@@ -43,7 +42,7 @@
                 clearTimeout(debounceTimer);
                 debounceTimer = null;
             }
-            sendValue();
+            sendValue(y_speed.value, x_speed.value, a_speed.value);
         });
     });
 
