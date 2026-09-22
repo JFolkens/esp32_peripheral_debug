@@ -68,9 +68,13 @@ void DrivetrainOmniWeb::handle_update(const std::map<std::string, std::string> &
         return;
     }
 
+    rover::hal::log_info("DrivetrainOmniWeb", "Speed update: x=%s, y=%s, a=%s",
+                         x_it->second.c_str(), y_it->second.c_str(), a_it->second.c_str());
     OmniSpeed speed_update;
-    speed_update.x = std::stof(x_it->second) / 100.0f;
-    speed_update.y = std::stof(y_it->second) / 100.0f;
-    speed_update.a_cw = std::stof(a_it->second) / 100.0f;
+    speed_update.x = std::stoi(x_it->second) / 100.0;
+    speed_update.y = std::stoi(y_it->second) / 100.0;
+    speed_update.a_cw = std::stoi(a_it->second) / 100.0;
+
+    _drivetrain->drive(speed_update);
 }
 }  // namespace rover::web
