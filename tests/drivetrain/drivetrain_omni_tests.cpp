@@ -11,46 +11,30 @@ namespace rover::tests::drivetrain
 class DrivetrainOmniTest : public ::testing::Test
 {
    protected:
-    rover::tests::hal::MotorMock *fl_ptr;
-    rover::tests::hal::MotorMock *fr_ptr;
-    rover::tests::hal::MotorMock *br_ptr;
-    rover::tests::hal::MotorMock *bl_ptr;
+    std::array<rover::tests::hal::MotorMock *, rover::NUM_WHEELS> motor_ptr;
 
     std::unique_ptr<DrivetrainOmni> drivetrain;
-    rover::OmniPlatform platform;
+    std::array<double, NUM_WHEELS> compensation_factors = {1, 1, 1, 1};
 
     void SetUp() override
     {
-        auto fl_mock = std::make_unique<rover::tests::hal::MotorMock>();
-        auto fr_mock = std::make_unique<rover::tests::hal::MotorMock>();
-        auto br_mock = std::make_unique<rover::tests::hal::MotorMock>();
-        auto bl_mock = std::make_unique<rover::tests::hal::MotorMock>();
+        std::array<std::unique_ptr<rover::hal::MotorInterface>, NUM_WHEELS> mock_motors;
+        for (std::size_t w : rover::WHEELS) {
+            auto mock_motor = std::make_unique<rover::tests::hal::MotorMock>();
+            motor_ptr[w] = mock_motor.get();
+            mock_motors[w] = std::move(mock_motor);
+        }
 
-        fl_ptr = fl_mock.get();
-        fr_ptr = fr_mock.get();
-        br_ptr = br_mock.get();
-        bl_ptr = bl_mock.get();
-
-        platform.width_m = 1.0;
-        platform.length_m = 1.0;
-        platform.comp_fl = 1.0;
-        platform.comp_fr = 1.0;
-        platform.comp_br = 1.0;
-        platform.comp_bl = 1.0;
-
-        drivetrain =
-            std::make_unique<DrivetrainOmni>(std::move(fl_mock), std::move(fr_mock),
-                                             std::move(br_mock), std::move(bl_mock), platform);
+        drivetrain = std::make_unique<DrivetrainOmni>(std::move(mock_motors), compensation_factors);
     }
 };
 
 TEST_F(DrivetrainOmniTest, StopInitializesMotorsToZero)
 {
     // Constructor calls stop()
-    EXPECT_EQ(fl_ptr->stop_call_count, 1);
-    EXPECT_EQ(fr_ptr->stop_call_count, 1);
-    EXPECT_EQ(br_ptr->stop_call_count, 1);
-    EXPECT_EQ(bl_ptr->stop_call_count, 1);
+    for (std::size_t w : rover::WHEELS) {
+        EXPECT_EQ(motor_ptr[w]->stop_call_count, 1);
+    }
 }
 
 TEST_F(DrivetrainOmniTest, DriveForwardSetsCorrectSpeeds)
@@ -61,10 +45,10 @@ TEST_F(DrivetrainOmniTest, DriveForwardSetsCorrectSpeeds)
     // fr = 1*(1-0-0) = 1
     // br = 1*(1+0-0) = 1
     // bl = 1*(1-0+0) = 1
-    EXPECT_FLOAT_EQ(fl_ptr->last_set_speed, 1.0f);
-    EXPECT_FLOAT_EQ(fr_ptr->last_set_speed, 1.0f);
-    EXPECT_FLOAT_EQ(br_ptr->last_set_speed, 1.0f);
-    EXPECT_FLOAT_EQ(bl_ptr->last_set_speed, 1.0f);
+    std::array<float, NUM_WHEELS> expected = {1.0f, 1.0f, 1.0f, 1.0f};
+    for (std::size_t w : rover::WHEELS) {
+        EXPECT_FLOAT_EQ(motor_ptr[w]->last_set_speed, expected[w]);
+    }
 }
 
 TEST_F(DrivetrainOmniTest, DriveStrafeSetsCorrectSpeeds)
@@ -75,10 +59,10 @@ TEST_F(DrivetrainOmniTest, DriveStrafeSetsCorrectSpeeds)
     // fr = 1*(0-1-0) = -1
     // br = 1*(0+1-0) = 1
     // bl = 1*(0-1+0) = -1
-    EXPECT_FLOAT_EQ(fl_ptr->last_set_speed, 1.0f);
-    EXPECT_FLOAT_EQ(fr_ptr->last_set_speed, -1.0f);
-    EXPECT_FLOAT_EQ(br_ptr->last_set_speed, 1.0f);
-    EXPECT_FLOAT_EQ(bl_ptr->last_set_speed, -1.0f);
+    std::array<float, NUM_WHEELS> expected = {1.0f, -1.0f, 1.0f, -1.0f};
+    for (std::size_t w : rover::WHEELS) {
+        EXPECT_FLOAT_EQ(motor_ptr[w]->last_set_speed, expected[w]);
+    }
 }
 
 TEST_F(DrivetrainOmniTest, DriveRotationSetsCorrectSpeeds)
@@ -89,10 +73,10 @@ TEST_F(DrivetrainOmniTest, DriveRotationSetsCorrectSpeeds)
     // fr = 1*(0-0-1) = -1
     // br = 1*(0+0-1) = -1
     // bl = 1*(0-0+1) = 1
-    EXPECT_FLOAT_EQ(fl_ptr->last_set_speed, 1.0f);
-    EXPECT_FLOAT_EQ(fr_ptr->last_set_speed, -1.0f);
-    EXPECT_FLOAT_EQ(br_ptr->last_set_speed, -1.0f);
-    EXPECT_FLOAT_EQ(bl_ptr->last_set_speed, 1.0f);
+    std::array<float, NUM_WHEELS> expected = {1.0f, -1.0f, -1.0f, 1.0f};
+    for (std::size_t w : rover::WHEELS) {
+        EXPECT_FLOAT_EQ(motor_ptr[w]->last_set_speed, expected[w]);
+    }
 }
 
 TEST_F(DrivetrainOmniTest, SpeedClippingWorks)
@@ -102,10 +86,10 @@ TEST_F(DrivetrainOmniTest, SpeedClippingWorks)
     drivetrain->drive({2.0, 2.0, 2.0});
 
     // Max val is 6, so all should be 6/6 = 1.0
-    EXPECT_FLOAT_EQ(fl_ptr->last_set_speed, 1.0f);
-    EXPECT_FLOAT_EQ(fr_ptr->last_set_speed, 1.0f);
-    EXPECT_FLOAT_EQ(br_ptr->last_set_speed, 1.0f);
-    EXPECT_FLOAT_EQ(bl_ptr->last_set_speed, 1.0f);
+    std::array<float, NUM_WHEELS> expected = {1.0f, 1.0f, 1.0f, 1.0f};
+    for (std::size_t w : rover::WHEELS) {
+        EXPECT_FLOAT_EQ(motor_ptr[w]->last_set_speed, expected[w]);
+    }
 }
 
 TEST_F(DrivetrainOmniTest, GetSpeedsReturnsCorrectValues)
@@ -118,9 +102,9 @@ TEST_F(DrivetrainOmniTest, GetSpeedsReturnsCorrectValues)
     // x = (1+1+1+1)/4 = 1
     // y = (-1+1-1+1)/4 = 0
     // a_cw = (-1+1+1-1)/4 = 0
-    EXPECT_FLOAT_EQ(speeds.x, 1.0f);
-    EXPECT_FLOAT_EQ(speeds.y, 0.0f);
-    EXPECT_FLOAT_EQ(speeds.a_cw, 0.0f);
+    EXPECT_FLOAT_EQ(speeds.x, 1.0);
+    EXPECT_FLOAT_EQ(speeds.y, 0.0);
+    EXPECT_FLOAT_EQ(speeds.a_cw, 0.0);
 }
 
 }  // namespace rover::tests::drivetrain

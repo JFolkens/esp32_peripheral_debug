@@ -8,20 +8,33 @@
 namespace rover
 {
 
-DrivetrainOmni::DrivetrainOmni(std::unique_ptr<rover::hal::MotorInterface> front_left,
-                               std::unique_ptr<rover::hal::MotorInterface> front_right,
-                               std::unique_ptr<rover::hal::MotorInterface> back_right,
-                               std::unique_ptr<rover::hal::MotorInterface> back_left,
-                               const OmniPlatform &platform)
-    : _front_left(std::move(front_left)),
-      _front_right(std::move(front_right)),
-      _back_right(std::move(back_right)),
-      _back_left(std::move(back_left)),
-      _platform(platform)
+namespace
 {
-    _radius =
-        std::sqrt(std::pow(_platform.width_m / 2.0, 2) + std::pow(_platform.length_m / 2.0, 2));
+// Conversion factors from wheel speed to drivetrain speed
+const double x_factor[4] = {1, 1, 1, 1};
+const double y_factor[4] = {-1, -1, 1, 1};
+const double rot_factor[4] = {-1, 1, -1, 1};
 
+/** Scale array so largest value is at most `max`. */
+void scale_to_max_abs(std::array<double, NUM_WHEELS> arr, double max)
+{
+    double max_val = 0;
+    for (double s : arr) {
+        max_val = std::max(max_val, std::abs(s));
+    }
+    if (max_val > max) {
+        for (auto &val : arr) {
+            val /= (max_val / max);
+        }
+    }
+}
+}  // namespace
+
+DrivetrainOmni::DrivetrainOmni(
+    std::array<std::unique_ptr<rover::hal::MotorInterface>, NUM_WHEELS> motors,
+    std::array<double, NUM_WHEELS> compensation_factors)
+    : _motors(std::move(motors)), _compensation_factors(compensation_factors)
+{
     // Initialize hardware to speed=0
     stop();
 }
@@ -34,44 +47,41 @@ void DrivetrainOmni::drive(const OmniSpeed &speeds)
     rover::hal::log_info("DrivetrainOmni", "Setting speed to x=%f, y=%f, a_cw=%f", speeds.x,
                          speeds.y, speeds.a_cw);
     // Compute raw values
-    double fl = _platform.comp_fl * (speeds.x + speeds.y + speeds.a_cw);
-    double fr = _platform.comp_fr * (speeds.x - speeds.y - speeds.a_cw);
-    double br = _platform.comp_br * (speeds.x + speeds.y - speeds.a_cw);
-    double bl = _platform.comp_bl * (speeds.x - speeds.y + speeds.a_cw);
-
-    rover::hal::log_info("DrivetrainOmni", "Computed wheel speeds as fl=%f, fr=%f, br=%f, bl=%f",
-                         fl, fr, br, bl);
-
-    // Clip if any values exceed [-1, 1] bounds
-    double max_val = std::max({std::abs(fl), std::abs(fr), std::abs(br), std::abs(bl)});
-
-    if (max_val > 1.0) {
-        fl = fl / max_val;
-        fr = fr / max_val;
-        br = br / max_val;
-        bl = bl / max_val;
+    std::array<double, NUM_WHEELS> wheel_speeds = {0, 0, 0, 0};
+    for (std::size_t i : WHEELS) {
+        wheel_speeds[i] =
+            _compensation_factors[i] *
+            (speeds.x * x_factor[i] + speeds.y * y_factor[i] + speeds.a_cw * rot_factor[i]);
     }
 
+    rover::hal::log_info("DrivetrainOmni", "Computed wheel speeds as fl=%f, fr=%f, br=%f, bl=%f",
+                         wheel_speeds[WheelIndex::FRONT_LEFT],
+                         wheel_speeds[WheelIndex::FRONT_RIGHT],
+                         wheel_speeds[WheelIndex::BACK_RIGHT], wheel_speeds[WheelIndex::BACK_LEFT]);
+
+    // Clip if any values exceed [-1, 1] bounds
+    scale_to_max_abs(wheel_speeds, 1.0);
+
     // Set motor speeds
-    _front_left->set_speed(static_cast<float>(fl));
-    _front_right->set_speed(static_cast<float>(fr));
-    _back_right->set_speed(static_cast<float>(br));
-    _back_left->set_speed(static_cast<float>(bl));
+    for (std::size_t i : WHEELS) {
+        _motors[i]->set_speed(static_cast<float>(wheel_speeds[i]));
+    }
 
     // Compute our current speeds.
     // By computing instead of using input OmniSpeed, we show values
     // based on clipping and scaling operations.
+    _state = {0, 0, 0};
+    for (int i = 0; i < NUM_WHEELS; ++i) {
+        _state.x += _compensation_factors[i] * x_factor[i] * wheel_speeds[i];
+        _state.y += _compensation_factors[i] * y_factor[i] * wheel_speeds[i];
+        _state.a_cw += _compensation_factors[i] * rot_factor[i] * wheel_speeds[i];
+    }
 
-    _state.x = ((fl / _platform.comp_fl) + (fr / _platform.comp_fr) + (br / _platform.comp_br) +
-                (bl / _platform.comp_bl)) /
-               4;
-    _state.y = (-1 * (fl / _platform.comp_fl) + (fr / _platform.comp_fr) -
-                (br / _platform.comp_br) + (bl / _platform.comp_bl)) /
-               4;
-    _state.a_cw = (-1 * (fl / _platform.comp_fl) + (fr / _platform.comp_fr) +
-                   (br / _platform.comp_br) - (bl / _platform.comp_bl)) /
-                  4;
-};
+    // Each wheel contributes to average
+    _state.x /= NUM_WHEELS;
+    _state.y /= NUM_WHEELS;
+    _state.a_cw /= NUM_WHEELS;
+}
 
 OmniSpeed DrivetrainOmni::get_speeds()
 {

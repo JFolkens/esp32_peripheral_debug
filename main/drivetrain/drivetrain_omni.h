@@ -5,12 +5,25 @@
  */
 #pragma once
 
+#include <array>
+#include <cstddef>
 #include <memory>
 
 #include "../hal/motor/motor_interface.h"
 
 namespace rover
 {
+
+/** @brief Index of wheel position for Drivetrain commands and state. */
+enum WheelIndex : std::size_t {
+    FRONT_LEFT = 0,
+    FRONT_RIGHT = 1,
+    BACK_RIGHT = 2,
+    BACK_LEFT = 3,
+};
+
+constexpr std::size_t NUM_WHEELS = 4;
+const std::array<std::size_t, NUM_WHEELS> WHEELS = {0, 1, 2, 3};
 
 /**
  * @brief OmniSpeed represents movement of omni-directional drivetrain.
@@ -32,10 +45,9 @@ struct OmniPlatform
 {
     double width_m = 0.0;   // Distance between left and right wheel centers (meters).
     double length_m = 0.0;  // Distance between front and back wheels (meters).
-    double comp_fl = 1.0;   // Compensation factor on [0, 1] for front left motor.
-    double comp_fr = 1.0;
-    double comp_br = 1.0;
-    double comp_bl = 1.0;
+
+    // Compensation factor on [0, 1] for each motor.
+    std::array<double, NUM_WHEELS> compensation_factors = {1, 1, 1, 1};
 };
 
 /**
@@ -47,11 +59,8 @@ struct OmniPlatform
 class DrivetrainOmni
 {
    public:
-    DrivetrainOmni(std::unique_ptr<rover::hal::MotorInterface> front_left,
-                   std::unique_ptr<rover::hal::MotorInterface> front_right,
-                   std::unique_ptr<rover::hal::MotorInterface> back_right,
-                   std::unique_ptr<rover::hal::MotorInterface> back_left,
-                   const OmniPlatform &platform);
+    DrivetrainOmni(std::array<std::unique_ptr<rover::hal::MotorInterface>, NUM_WHEELS> motors,
+                   std::array<double, NUM_WHEELS> compensation_factors = {1, 1, 1, 1});
     virtual ~DrivetrainOmni() = default;
 
     /**
@@ -75,13 +84,9 @@ class DrivetrainOmni
     void stop();
 
    private:
-    std::unique_ptr<rover::hal::MotorInterface> _front_left;
-    std::unique_ptr<rover::hal::MotorInterface> _front_right;
-    std::unique_ptr<rover::hal::MotorInterface> _back_right;
-    std::unique_ptr<rover::hal::MotorInterface> _back_left;
-    OmniPlatform _platform;
+    std::array<std::unique_ptr<rover::hal::MotorInterface>, NUM_WHEELS> _motors;
+    std::array<double, NUM_WHEELS> _compensation_factors;
 
-    double _radius;
     OmniSpeed _state;
 };
 
