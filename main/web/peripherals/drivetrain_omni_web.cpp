@@ -18,9 +18,7 @@ DrivetrainOmniWeb::DrivetrainOmniWeb(const std::string &name_,
 
 std::string DrivetrainOmniWeb::html_state() const
 {
-    // Drivetrain interface is [-1, 1]. HTML displays percentage.
-
-    // TODO
+    // Empty
     return "";
 }
 
