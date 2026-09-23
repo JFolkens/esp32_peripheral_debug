@@ -61,22 +61,18 @@ void app_main()
      *           New "front left" gets D4 instead of D5
      *           Back left D12 gets D13
      */
-    auto front_left = std::unique_ptr<MotorInterface>(
+    std::array<std::unique_ptr<MotorInterface>, rover::NUM_WHEELS> motors;
+    motors[rover::WheelIndex::FRONT_LEFT] = std::unique_ptr<MotorInterface>(
         MotorL298nEsp32(GPIO_NUM_5, GPIO_NUM_18, GPIO_NUM_19, LEDC_CHANNEL_0, LEDC_TIMER_0));
-    auto front_right = std::unique_ptr<MotorInterface>(
+    motors[rover::WheelIndex::FRONT_RIGHT] = std::unique_ptr<MotorInterface>(
         MotorL298nEsp32(GPIO_NUM_4, GPIO_NUM_2, GPIO_NUM_15, LEDC_CHANNEL_1, LEDC_TIMER_1));
-    auto back_right = std::unique_ptr<MotorInterface>(
+    motors[rover::WheelIndex::BACK_RIGHT] = std::unique_ptr<MotorInterface>(
         MotorL298nEsp32(GPIO_NUM_27, GPIO_NUM_14, GPIO_NUM_12, LEDC_CHANNEL_2, LEDC_TIMER_2));
-    auto back_left = std::unique_ptr<MotorInterface>(
+    motors[rover::WheelIndex::BACK_LEFT] = std::unique_ptr<MotorInterface>(
         MotorL298nEsp32(GPIO_NUM_33, GPIO_NUM_25, GPIO_NUM_32, LEDC_CHANNEL_3, LEDC_TIMER_3));
 
     /* --- Drivetrain --- */
-    rover::OmniPlatform platform;
-    platform.width_m = 0.02;
-    platform.length_m = 0.02;
-    auto drivetrain = std::make_unique<rover::DrivetrainOmni>(
-        std::move(front_left), std::move(front_right), std::move(back_right), std::move(back_left),
-        platform);
+    auto drivetrain = std::make_unique<rover::DrivetrainOmni>(std::move(motors));
 
     /* --- Html rendering application ---- */
     auto debug_server = std::make_unique<HttpServerEsp32>(CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
