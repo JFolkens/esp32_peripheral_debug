@@ -86,7 +86,7 @@ TEST_F(DrivetrainOmniTest, SpeedClippingWorks)
     drivetrain->drive({2.0, 2.0, 2.0});
 
     // Max val is 6, so all should be 6/6 = 1.0
-    std::array<float, NUM_WHEELS> expected = {1.0f, 1.0f, 1.0f, 1.0f};
+    std::array<float, NUM_WHEELS> expected = {1.0f, -1 / 3.0f, 1 / 3.0f, 1 / 3.0f};
     for (std::size_t w : rover::WHEELS) {
         EXPECT_FLOAT_EQ(motor_ptr[w]->last_set_speed, expected[w]);
     }
@@ -102,9 +102,9 @@ TEST_F(DrivetrainOmniTest, GetSpeedsReturnsCorrectValues)
     // x = (1+1+1+1)/4 = 1
     // y = (-1+1-1+1)/4 = 0
     // a_cw = (-1+1+1-1)/4 = 0
-    EXPECT_FLOAT_EQ(speeds.x, 1.0);
-    EXPECT_FLOAT_EQ(speeds.y, 0.0);
-    EXPECT_FLOAT_EQ(speeds.a_cw, 0.0);
+    EXPECT_DOUBLE_EQ(speeds.x, 1.0);
+    EXPECT_DOUBLE_EQ(speeds.y, 0.0);
+    EXPECT_DOUBLE_EQ(speeds.a_cw, 0.0);
 }
 
 }  // namespace rover::tests::drivetrain

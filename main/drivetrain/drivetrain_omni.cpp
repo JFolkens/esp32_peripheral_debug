@@ -12,11 +12,11 @@ namespace
 {
 // Conversion factors from wheel speed to drivetrain speed
 const double x_factor[4] = {1, 1, 1, 1};
-const double y_factor[4] = {-1, -1, 1, 1};
-const double rot_factor[4] = {-1, 1, -1, 1};
+const double y_factor[4] = {1, -1, 1, -1};
+const double rot_factor[4] = {1, -1, -1, 1};
 
 /** Scale array so largest value is at most `max`. */
-void scale_to_max_abs(std::array<double, NUM_WHEELS> arr, double max)
+void scale_to_max_abs(std::array<double, NUM_WHEELS> &arr, double max)
 {
     double max_val = 0;
     for (double s : arr) {
@@ -90,7 +90,10 @@ OmniSpeed DrivetrainOmni::get_speeds()
 
 void DrivetrainOmni::stop()
 {
-    drive({0, 0, 0});
+    for (std::size_t w : WHEELS) {
+        _motors[w]->stop();
+    }
+    _state = {0, 0, 0};
 }
 
 }  // namespace rover
