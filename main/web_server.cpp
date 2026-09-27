@@ -63,9 +63,10 @@ void app_main()
     app = std::make_unique<DeviceWebApp>(std::move(debug_server));
 
     /* --- Wrap hardware in PeripheralInterface classes ---- */
-    auto blue_led_web = std::make_unique<LedWeb>("blue_led", std::move(blue_led));
-    auto front_left_web = std::make_unique<MotorWeb>("front_left", std::move(front_left));
-    auto front_right_pwm_web = std::make_unique<PwmWeb>("front_right", std::move(front_right_pwm));
+    auto blue_led_web = std::make_unique<LedWeb>("Blue_LED", std::move(blue_led));
+    auto front_left_web = std::make_unique<MotorWeb>("Front_Left_Motor", std::move(front_left));
+    auto front_right_pwm_web =
+        std::make_unique<PwmWeb>("Front_Right_PWM", std::move(front_right_pwm));
 
     /* --- Add to webpage ---- */
     app->add_peripheral(std::move(blue_led_web));
