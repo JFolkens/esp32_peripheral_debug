@@ -16,13 +16,18 @@ extern "C" {
 #include <memory>
 #include <string>
 
-#include "drivetrain/drivetrain_omni.h"
+#include "esp32/gpio_esp32.h"
 #include "esp32/http_server_esp32.h"
 #include "esp32/motor_l298n_esp32.h"
+#include "esp32/pwm_esp32.h"
+#include "hal/gpio/gpio_interface.h"
 #include "hal/motor/motor_interface.h"
 #include "hal/motor/motor_l298n.h"
+#include "hal/pwm/pwm_interface.h"
 #include "web/device_web_app.h"
-#include "web/peripherals/drivetrain_omni_web.h"
+#include "web/peripherals/led_web.h"
+#include "web/peripherals/motor_web.h"
+#include "web/peripherals/pwm_web.h"
 
 /*
  The WIFI name is stored in KConfig.projbuild but true password
@@ -47,41 +52,25 @@ void app_main()
     ESP_ERROR_CHECK(nvs_flash_init());
     esp_event_loop_create_default();
 
-    /* --- Motors ---- */
-    /* Problems:
-     * Gpio 2 (front_right:reverse) is Blue on-board LED. Also must be low on boot
-     * Gpio 5 (front_left:forward) must be high on boot
-     * Gpio 15 (front_right:pwm) must be high during boot
-     * Gpio 12 (back_right:pwm) must be low during boot
-     *
-     * Available GPIOs:
-     * D13, D21, D22, D23, D26, TX2/RX2
-     *
-     * Solution: Move front left JST down to D23,22,21 (becomes front right)
-     *           New "front left" gets D4 instead of D5
-     *           Back left D12 gets D13
-     */
-    std::array<std::unique_ptr<MotorInterface>, rover::NUM_WHEELS> motors;
-    motors[rover::WheelIndex::FRONT_LEFT] = std::unique_ptr<MotorInterface>(
+    /* --- Hardware objects ---- */
+    auto blue_led = std::make_unique<GpioEsp32>(rover::hal::GpioDirection::OUTPUT, GPIO_NUM_2);
+    auto front_left = std::unique_ptr<MotorInterface>(
         MotorL298nEsp32(GPIO_NUM_5, GPIO_NUM_18, GPIO_NUM_19, LEDC_CHANNEL_0, LEDC_TIMER_0));
-    motors[rover::WheelIndex::FRONT_RIGHT] = std::unique_ptr<MotorInterface>(
-        MotorL298nEsp32(GPIO_NUM_4, GPIO_NUM_2, GPIO_NUM_15, LEDC_CHANNEL_1, LEDC_TIMER_1));
-    motors[rover::WheelIndex::BACK_RIGHT] = std::unique_ptr<MotorInterface>(
-        MotorL298nEsp32(GPIO_NUM_27, GPIO_NUM_14, GPIO_NUM_12, LEDC_CHANNEL_2, LEDC_TIMER_2));
-    motors[rover::WheelIndex::BACK_LEFT] = std::unique_ptr<MotorInterface>(
-        MotorL298nEsp32(GPIO_NUM_33, GPIO_NUM_25, GPIO_NUM_32, LEDC_CHANNEL_3, LEDC_TIMER_3));
+    auto front_right_pwm = std::make_unique<PwmEsp32>(GPIO_NUM_15, LEDC_CHANNEL_1, LEDC_TIMER_1);
 
-    /* --- Drivetrain --- */
-    auto drivetrain = std::make_unique<rover::DrivetrainOmni>(std::move(motors));
-
-    /* --- Html rendering application ---- */
+    /* --- Html webpage class ---- */
     auto debug_server = std::make_unique<HttpServerEsp32>(CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
     app = std::make_unique<DeviceWebApp>(std::move(debug_server));
 
-    /* --- Add peripherals to webpage ---- */
-    auto drivetrain_web = std::make_unique<DrivetrainOmniWeb>("drivetrain", std::move(drivetrain));
+    /* --- Wrap hardware in PeripheralInterface classes ---- */
+    auto blue_led_web = std::make_unique<LedWeb>("blue_led", std::move(blue_led));
+    auto front_left_web = std::make_unique<MotorWeb>("front_left", std::move(front_left));
+    auto front_right_pwm_web = std::make_unique<PwmWeb>("front_right", std::move(front_right_pwm));
 
-    app->add_peripheral(std::move(drivetrain_web));
+    /* --- Add to webpage ---- */
+    app->add_peripheral(std::move(blue_led_web));
+    app->add_peripheral(std::move(front_left_web));
+    app->add_peripheral(std::move(front_right_pwm_web));
 }
 
 }  // extern "C"

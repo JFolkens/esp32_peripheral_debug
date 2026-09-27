@@ -55,6 +55,12 @@ target_link_libraries(
     GTest::gtest_main
 )
 
+# Add test coverage
+# target_compile_options(${project} --coverage -g -O0)
+# target_link_options(${project} --coverage)
+add_compile_options(${project} --coverage -O0 -g)
+add_link_options(${project} --coverage)
+
 target_include_directories(${project}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
@@ -62,4 +68,5 @@ target_include_directories(${project}
 )
 
 include(GoogleTest)
+enable_testing()
 gtest_discover_tests(${project})
